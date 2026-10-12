@@ -5,7 +5,7 @@ import { Product, Review } from '@/types/database';
 import { ProductCard } from '@/components/product/ProductCard';
 import { useCart } from '@/components/cart/CartContext';
 import { useToast } from '@/components/ui/Toast';
-import { Star, ShieldCheck, Truck, RotateCcw, Play, Minus, Plus, ShoppingBag, Sparkles } from 'lucide-react';
+import { Star, ShieldCheck, Truck, RotateCcw, Play, Minus, Plus, ShoppingBag, Sparkles, Heart } from 'lucide-react';
 
 interface ProductDetailViewProps {
   product: Product;

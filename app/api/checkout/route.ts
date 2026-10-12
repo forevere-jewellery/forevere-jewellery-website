@@ -45,7 +45,7 @@ export async function POST(request: Request) {
       }
 
       for (const item of items) {
-        const prod = dbProducts.find((p) => p.id === item.productId && p.is_active);
+        const prod = dbProducts.find((p:any) => p.id === item.productId && p.is_active);
         if (!prod) {
           return NextResponse.json({ success: false, error: `Product unavailable: ${item.productId}` }, { status: 400 });
         }

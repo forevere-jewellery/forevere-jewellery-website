@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { checkRateLimit, getClientIp } from '@/lib/security/rate-limit';
 import { loginSchema } from '@/lib/security/validation';
-import { signAdminToken } from '@/lib/auth/admin';
+import { signAdminToken } from '@/lib/auth/token';
 import { isRealSupabaseConfigured } from '@/lib/supabase/client';
 import { createClient as createServerSupabaseClient } from '@/lib/supabase/server';
 
@@ -80,7 +80,8 @@ export async function POST(request: Request) {
     }
 
     // Create signed token
-    const token = signAdminToken(adminUserId);
+   // NEW
+    const token = await signAdminToken(adminUserId);
     const isProduction = process.env.NODE_ENV === 'production';
 
     const response = NextResponse.json({

@@ -50,8 +50,8 @@ export async function POST(request: Request) {
       if (found) {
         coupon = {
           code: found.code,
-          discount_percent: found.discount_percent,
-          discount_amount: found.discount_amount,
+          discount_percent: found.discount_percent ?? null,
+          discount_amount: found.discount_amount ?? null,
           min_order_value: found.min_order_value,
           active: found.active,
         };

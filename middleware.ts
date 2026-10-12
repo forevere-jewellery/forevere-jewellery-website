@@ -1,14 +1,14 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { verifyAdminToken } from '@/lib/auth/admin';
+import { verifyAdminToken } from '@/lib/auth/token';
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Protect all /api/admin routes except /api/admin/login
   if (pathname.startsWith('/api/admin') && pathname !== '/api/admin/login') {
     const adminToken = request.cookies.get('fj_admin_token')?.value;
-    const isTokenValid = adminToken ? verifyAdminToken(adminToken) : false;
+    const isTokenValid = adminToken ? await verifyAdminToken(adminToken) : false;
 
     if (!isTokenValid) {
       return NextResponse.json(
@@ -22,10 +22,11 @@ export function middleware(request: NextRequest) {
   if (pathname.startsWith('/admin') && pathname !== '/admin/login') {
     const adminToken = request.cookies.get('fj_admin_token')?.value;
     const roleCookie = request.cookies.get('fj_role')?.value;
-    const isTokenValid = adminToken ? verifyAdminToken(adminToken) : false;
+    const isTokenValid = adminToken ? await verifyAdminToken(adminToken) : false;
 
     // Must have a valid signed admin token (or matching role during development)
-    const isAuthorized = isTokenValid || (process.env.NODE_ENV !== 'production' && roleCookie === 'admin');
+    const isAuthorized =
+      isTokenValid || (process.env.NODE_ENV !== 'production' && roleCookie === 'admin');
 
     if (!isAuthorized) {
       const loginUrl = new URL('/admin/login', request.url);
