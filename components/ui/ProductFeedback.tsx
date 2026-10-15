@@ -93,10 +93,11 @@ export function ProductFeedback({ productId, productName }: ProductFeedbackProps
                   onMouseEnter={() => setHoverRating(star)}
                   onMouseLeave={() => setHoverRating(0)}
                   onClick={() => setRating(star)}
-                  className="transition-transform hover:scale-110"
+                  className="p-1 min-w-[36px] min-h-[36px] flex items-center justify-center transition-transform hover:scale-110"
+                  aria-label={`Rate ${star} stars`}
                 >
                   <Star
-                    className={`w-7 h-7 transition-colors ${
+                    className={`w-6 h-6 transition-colors ${
                       star <= (hoverRating || rating) ? 'fill-[#C5A059] text-[#C5A059]' : 'text-gray-300'
                     }`}
                   />
@@ -118,13 +119,13 @@ export function ProductFeedback({ productId, productName }: ProductFeedbackProps
               placeholder="Tell us about the quality, craftsmanship, packaging..."
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              className="w-full px-3 py-2.5 bg-[#FDFBF7] border border-[#EADFC9] rounded-xl text-xs font-sans text-[#111111] focus:outline-none focus:border-[#C5A059] transition-colors"
+              className="w-full px-3 py-2.5 bg-[#FDFBF7] border border-[#EADFC9] rounded-xl text-base sm:text-xs font-sans text-[#111111] focus:outline-none focus:border-[#C5A059] transition-colors"
             />
           </div>
 
           <button
             type="submit"
-            className="w-full py-3 bg-[#111111] hover:bg-[#C5A059] text-white text-xs font-sans uppercase tracking-widest font-semibold rounded-full transition-colors flex items-center justify-center gap-2"
+            className="w-full py-3 min-h-[44px] bg-[#111111] hover:bg-[#C5A059] text-white text-xs font-sans uppercase tracking-widest font-semibold rounded-full transition-colors flex items-center justify-center gap-2"
           >
             <Send className="w-4 h-4" />
             <span>Submit Review</span>

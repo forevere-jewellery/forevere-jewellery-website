@@ -36,22 +36,44 @@ export async function POST(request: Request) {
     if (isRealSupabaseConfigured()) {
       try {
         const supabase = await createServerSupabaseClient();
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: email.trim().toLowerCase(),
+          password,
+        });
 
         if (!error && data.user) {
+          // Check profiles table first
           const { data: profile } = await supabase
-            .from('users')
+            .from('profiles')
             .select('role')
             .eq('id', data.user.id)
             .single();
 
-          if (profile?.role === 'admin') {
+          let userRole = profile?.role;
+
+          if (!userRole) {
+            // Check legacy users table
+            const { data: legacyProfile } = await supabase
+              .from('users')
+              .select('role')
+              .eq('id', data.user.id)
+              .single();
+            userRole = legacyProfile?.role;
+          }
+
+          // If email is admin@forevere.com or role is admin
+          if (userRole === 'admin' || data.user.email?.toLowerCase() === 'admin@forevere.com') {
             isAuthenticated = true;
             adminUserId = data.user.id;
+          } else {
+            return NextResponse.json(
+              { success: false, error: 'Access denied: Administrator privileges required.' },
+              { status: 403 }
+            );
           }
         }
       } catch {
-        // Fall back to env verification
+        // Fall back to server environment variables
       }
     }
 
@@ -79,14 +101,18 @@ export async function POST(request: Request) {
       );
     }
 
-    // Create signed token
-   // NEW
+    // Create signed admin token
     const token = await signAdminToken(adminUserId);
     const isProduction = process.env.NODE_ENV === 'production';
 
     const response = NextResponse.json({
       success: true,
       message: 'Authentication successful.',
+      user: {
+        id: adminUserId,
+        email,
+        role: 'admin',
+      },
     });
 
     // Set secure HttpOnly cookie for admin verification
@@ -98,14 +124,9 @@ export async function POST(request: Request) {
       maxAge: 7 * 24 * 60 * 60, // 7 days
     });
 
-    // Also set standard role cookie for UI state
-    response.cookies.set('fj_role', 'admin', {
-      httpOnly: false,
-      secure: isProduction,
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 7 * 24 * 60 * 60,
-    });
+    // Remove legacy fake role and user_id cookies if present
+    response.cookies.delete('fj_role');
+    response.cookies.delete('fj_user_id');
 
     return response;
   } catch {

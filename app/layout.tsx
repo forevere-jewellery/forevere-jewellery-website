@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Playfair_Display, Plus_Jakarta_Sans } from "next/font/google";
 import { AuthProvider } from "@/components/auth/AuthContext";
 import { CartProvider } from "@/components/cart/CartContext";
@@ -21,9 +21,15 @@ const jakarta = Plus_Jakarta_Sans({
   display: "swap",
 });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+};
+
 export const metadata: Metadata = {
-  title: "Forevere Jewellary | Premium Fine Jewelry & Diamonds",
-  description: "Discover handcrafted luxury jewelry, solitaire diamond rings, gold necklaces, drop earrings, and bracelets at Forevere Jewellary.",
+  title: "Forevere Jewellery | Premium Fine Jewelry & Diamonds",
+  description: "Discover handcrafted luxury jewelry, solitaire diamond rings, gold necklaces, drop earrings, and bracelets at Forevere Jewellery.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -248,7 +248,7 @@ export const INITIAL_HOMEPAGE_CONTENT: HomepageContent = {
   hero_image: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?q=80&w=1920',
   hero_headline: 'Timeless Elegance, Crafted Forever',
   hero_subheadline: 'Discover our hand-curated collection of ethical diamond rings, gold necklaces, and heirloom jewelry.',
-  about_us_text: 'At Forevere Jewellary, we believe that true luxury lies in master craftsmanship, ethical sourcing, and timeless beauty. Founded with a vision to revolutionize fine jewelry, every ring, necklace, and earring is meticulously created by master artisans using 100% recycled gold and ethically sourced conflict-free diamonds.'
+  about_us_text: 'At Forevere Jewellery, we believe that true luxury lies in master craftsmanship, ethical sourcing, and timeless beauty. Founded with a vision to revolutionize fine jewelry, every ring, necklace, and earring is meticulously created by master artisans using 100% recycled gold and ethically sourced conflict-free diamonds.'
 };
 
 export const INITIAL_PAYMENT_METHODS: PaymentMethod[] = [
@@ -263,7 +263,7 @@ export const INITIAL_REVIEWS: Review[] = [
   {
     id: 'r1',
     product_id: 'p1000000-0000-0000-0000-000000000001',
-    user_id: 'u-sample-1',
+    user_id: '00000000-0000-0000-0000-000000000001',
     rating: 5,
     comment: 'Absolutely stunning solitaire ring! The brilliance of the diamond in sunlight is unbelievable.',
     created_at: '2026-08-15T10:30:00Z',
@@ -272,7 +272,7 @@ export const INITIAL_REVIEWS: Review[] = [
   {
     id: 'r2',
     product_id: 'p1000000-0000-0000-0000-000000000002',
-    user_id: 'u-sample-2',
+    user_id: '00000000-0000-0000-0000-000000000002',
     rating: 5,
     comment: 'The chain is so delicate yet sturdy, and the pendant catches every ray of light. Loved the gift packaging!',
     created_at: '2026-08-20T14:15:00Z',

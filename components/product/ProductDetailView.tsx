@@ -162,17 +162,19 @@ export function ProductDetailView({ product, relatedProducts, reviews }: Product
           <div className="space-y-4 pt-4 border-t border-[#EADFC9]">
             <div className="flex items-center gap-4">
               <span className="text-xs font-sans uppercase tracking-wider text-[#555555]">Quantity:</span>
-              <div className="flex items-center border border-[#EADFC9] rounded-full bg-white px-3 py-1.5 gap-3">
+              <div className="flex items-center border border-[#EADFC9] rounded-full bg-white px-1.5 py-1 gap-1">
                 <button
                   onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                  className="text-gray-500 hover:text-[#111111] p-1"
+                  className="text-gray-500 hover:text-[#111111] p-2 min-w-[40px] min-h-[40px] flex items-center justify-center"
+                  aria-label="Decrease quantity"
                 >
                   <Minus className="w-3.5 h-3.5" />
                 </button>
-                <span className="text-xs font-bold font-serif w-4 text-center">{quantity}</span>
+                <span className="text-xs font-bold font-serif w-6 text-center">{quantity}</span>
                 <button
                   onClick={() => setQuantity((q) => Math.min(product.stock_quantity, q + 1))}
-                  className="text-gray-500 hover:text-[#111111] p-1"
+                  className="text-gray-500 hover:text-[#111111] p-2 min-w-[40px] min-h-[40px] flex items-center justify-center"
+                  aria-label="Increase quantity"
                 >
                   <Plus className="w-3.5 h-3.5" />
                 </button>
@@ -183,15 +185,16 @@ export function ProductDetailView({ product, relatedProducts, reviews }: Product
               <button
                 onClick={handleAddToCart}
                 disabled={product.stock_quantity <= 0}
-                className="flex-1 py-4 bg-[#111111] hover:bg-[#C5A059] text-white text-xs font-sans uppercase tracking-[0.2em] font-semibold rounded-full shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 py-4 min-h-[48px] bg-[#111111] hover:bg-[#C5A059] text-white text-xs font-sans uppercase tracking-[0.2em] font-semibold rounded-full shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ShoppingBag className="w-4 h-4" />
                 <span>Add to Cart</span>
               </button>
               <button
                 onClick={() => showToast('Wishlist', 'Saved to your luxury wishlist.', 'info')}
-                className="p-4 rounded-full border border-[#EADFC9] bg-white hover:border-[#C5A059] text-[#111111] hover:text-[#C5A059] transition-colors"
+                className="p-4 min-h-[48px] min-w-[48px] flex items-center justify-center rounded-full border border-[#EADFC9] bg-white hover:border-[#C5A059] text-[#111111] hover:text-[#C5A059] transition-colors"
                 title="Save to Wishlist"
+                aria-label="Save to Wishlist"
               >
                 <Heart className="w-5 h-5" />
               </button>
@@ -199,18 +202,18 @@ export function ProductDetailView({ product, relatedProducts, reviews }: Product
           </div>
 
           {/* Guarantees */}
-          <div className="grid grid-cols-3 gap-2 pt-4 border-t border-[#EADFC9] text-[11px] font-sans text-gray-500 text-center">
-            <div className="p-3 bg-white border border-[#EADFC9] rounded-xl flex flex-col items-center gap-1">
+          <div className="grid grid-cols-3 gap-2 pt-4 border-t border-[#EADFC9] text-[10px] sm:text-[11px] font-sans text-gray-500 text-center">
+            <div className="p-2.5 sm:p-3 bg-white border border-[#EADFC9] rounded-xl flex flex-col items-center gap-1">
               <ShieldCheck className="w-4 h-4 text-[#C5A059]" />
-              <span>Certified Quality</span>
+              <span className="leading-tight">Certified Quality</span>
             </div>
-            <div className="p-3 bg-white border border-[#EADFC9] rounded-xl flex flex-col items-center gap-1">
+            <div className="p-2.5 sm:p-3 bg-white border border-[#EADFC9] rounded-xl flex flex-col items-center gap-1">
               <Truck className="w-4 h-4 text-[#C5A059]" />
-              <span>Insured Express</span>
+              <span className="leading-tight">Insured Express</span>
             </div>
-            <div className="p-3 bg-white border border-[#EADFC9] rounded-xl flex flex-col items-center gap-1">
+            <div className="p-2.5 sm:p-3 bg-white border border-[#EADFC9] rounded-xl flex flex-col items-center gap-1">
               <RotateCcw className="w-4 h-4 text-[#C5A059]" />
-              <span>30-Day Return</span>
+              <span className="leading-tight">30-Day Return</span>
             </div>
           </div>
 

@@ -149,7 +149,7 @@ export function CategoryManager() {
   };
 
   return (
-    <div className="p-8 max-w-7xl w-full mx-auto space-y-8">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-8">
       
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[#EADFC9] pb-6">
@@ -158,7 +158,7 @@ export function CategoryManager() {
             <LayoutGrid className="w-3.5 h-3.5" />
             <span>Store Taxonomy</span>
           </div>
-          <h1 className="text-3xl font-serif text-[#111111]">Category Management</h1>
+          <h1 className="text-2xl sm:text-3xl font-serif text-[#111111]">Category Management</h1>
           <p className="text-xs text-gray-500 font-sans">
             Add, edit, reorder, and configure luxury jewelry collection categories.
           </p>
@@ -166,7 +166,7 @@ export function CategoryManager() {
 
         <button
           onClick={handleOpenAdd}
-          className="px-6 py-3 bg-[#111111] hover:bg-[#C5A059] text-white text-xs font-sans uppercase tracking-widest font-semibold rounded-full shadow flex items-center gap-2 transition-colors"
+          className="px-6 py-3 min-h-[44px] bg-[#111111] hover:bg-[#C5A059] text-white text-xs font-sans uppercase tracking-widest font-semibold rounded-full shadow flex items-center justify-center gap-2 transition-colors w-full sm:w-auto"
         >
           <Plus className="w-4 h-4" />
           <span>Add New Category</span>
@@ -176,7 +176,7 @@ export function CategoryManager() {
       {/* Categories Table */}
       <div className="bg-white border border-[#EADFC9] rounded-2xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs font-sans">
+          <table className="w-full text-left text-xs font-sans min-w-[600px]">
             <thead className="bg-[#F8F3E6] text-[#555555] uppercase tracking-wider text-[10px] border-b border-[#EADFC9]">
               <tr>
                 <th className="py-3.5 px-4 font-semibold">Display Order</th>
@@ -278,7 +278,8 @@ export function CategoryManager() {
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="text-gray-400 hover:text-[#111111]"
+                className="text-gray-400 hover:text-[#111111] p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full hover:bg-black/5"
+                aria-label="Close modal"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -297,7 +298,7 @@ export function CategoryManager() {
                   placeholder="e.g. Royal Solitaire Rings"
                   value={name}
                   onChange={(e) => handleNameChange(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-white border border-[#EADFC9] rounded-xl focus:outline-none focus:border-[#C5A059] text-[#111111]"
+                  className="w-full px-3.5 py-2.5 bg-white border border-[#EADFC9] rounded-xl focus:outline-none focus:border-[#C5A059] text-base sm:text-xs text-[#111111]"
                 />
                 <p className="text-[10px] text-gray-400">The primary collection heading displayed to shoppers.</p>
               </div>
@@ -313,7 +314,7 @@ export function CategoryManager() {
                   placeholder="e.g. royal-solitaire-rings"
                   value={slug}
                   onChange={(e) => setSlug(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-white border border-[#EADFC9] rounded-xl focus:outline-none focus:border-[#C5A059] text-[#111111] font-mono text-xs"
+                  className="w-full px-3.5 py-2.5 bg-white border border-[#EADFC9] rounded-xl focus:outline-none focus:border-[#C5A059] text-base sm:text-xs text-[#111111] font-mono"
                 />
                 <p className="text-[10px] text-gray-400">URL path formatted in kebab-case (e.g. /category/slug).</p>
               </div>
@@ -328,7 +329,7 @@ export function CategoryManager() {
                   placeholder="Exquisite solitary and diamond engagement rings..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-white border border-[#EADFC9] rounded-xl focus:outline-none focus:border-[#C5A059] text-[#111111]"
+                  className="w-full px-3.5 py-2.5 bg-white border border-[#EADFC9] rounded-xl focus:outline-none focus:border-[#C5A059] text-base sm:text-xs text-[#111111]"
                 />
                 <p className="text-[10px] text-gray-400">Editorial description displayed at the top of the collection page.</p>
               </div>
@@ -343,7 +344,7 @@ export function CategoryManager() {
                   placeholder="https://images.unsplash.com/..."
                   value={imageUrl}
                   onChange={(e) => setImageUrl(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-white border border-[#EADFC9] rounded-xl focus:outline-none focus:border-[#C5A059] text-[#111111]"
+                  className="w-full px-3.5 py-2.5 bg-white border border-[#EADFC9] rounded-xl focus:outline-none focus:border-[#C5A059] text-base sm:text-xs text-[#111111]"
                 />
                 <p className="text-[10px] text-gray-400">High-resolution banner imagery for category tiles.</p>
               </div>
@@ -358,22 +359,22 @@ export function CategoryManager() {
                   min="1"
                   value={sortOrder}
                   onChange={(e) => setSortOrder(Number(e.target.value))}
-                  className="w-full px-3.5 py-2.5 bg-white border border-[#EADFC9] rounded-xl focus:outline-none focus:border-[#C5A059] text-[#111111]"
+                  className="w-full px-3.5 py-2.5 bg-white border border-[#EADFC9] rounded-xl focus:outline-none focus:border-[#C5A059] text-base sm:text-xs text-[#111111]"
                 />
                 <p className="text-[10px] text-gray-400">Lower numbers appear first on the navbar and homepage.</p>
               </div>
 
-              <div className="pt-4 flex items-center justify-end gap-3 border-t border-[#EADFC9]">
+              <div className="pt-4 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3 border-t border-[#EADFC9]">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-5 py-2.5 rounded-full border border-gray-300 text-gray-600 hover:bg-gray-100 font-semibold"
+                  className="px-5 py-2.5 min-h-[44px] flex items-center justify-center rounded-full border border-gray-300 text-gray-600 hover:bg-gray-100 font-semibold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 bg-[#111111] hover:bg-[#C5A059] text-white font-semibold rounded-full shadow transition-colors"
+                  className="px-6 py-2.5 min-h-[44px] flex items-center justify-center bg-[#111111] hover:bg-[#C5A059] text-white font-semibold rounded-full shadow transition-colors"
                 >
                   {editingCategory ? 'Save Changes' : 'Create Category'}
                 </button>

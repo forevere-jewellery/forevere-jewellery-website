@@ -92,14 +92,14 @@ export function LoyaltyPointsManager() {
   ];
 
   return (
-    <div className="p-8 max-w-6xl w-full mx-auto space-y-8">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-6xl w-full mx-auto space-y-8">
       {/* Header */}
       <div className="border-b border-[#EADFC9] pb-6 space-y-2">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F8F3E6] text-[#C5A059] text-[10px] font-semibold uppercase tracking-wider">
           <Gift className="w-3.5 h-3.5" />
           <span>Loyalty &amp; Retention Engine</span>
         </div>
-        <h1 className="text-3xl font-serif text-[#111111]">Loyalty Points &amp; Referral Program</h1>
+        <h1 className="text-2xl sm:text-3xl font-serif text-[#111111]">Loyalty Points &amp; Referral Program</h1>
         <p className="text-xs text-gray-500 font-sans">
           Configure how customers earn and redeem loyalty points, set up point-to-coupon conversions, and manage the referral rewards program.
         </p>
@@ -131,12 +131,12 @@ export function LoyaltyPointsManager() {
       </div>
 
       {/* Tab Switcher */}
-      <div className="flex items-center gap-2 bg-white border border-[#EADFC9] rounded-2xl p-1.5">
+      <div className="flex items-center gap-2 bg-white border border-[#EADFC9] rounded-2xl p-1.5 overflow-x-auto">
         {TABS.map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-sans font-semibold transition-all ${
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-sans font-semibold transition-all whitespace-nowrap ${
               activeTab === tab.key
                 ? 'bg-[#111111] text-[#C5A059] shadow-md'
                 : 'text-gray-500 hover:bg-gray-100'
@@ -163,7 +163,7 @@ export function LoyaltyPointsManager() {
                 step="0.01"
                 value={pointsPerUnit}
                 onChange={(e) => setPointsPerUnit(e.target.value)}
-                className="w-full px-3 py-2.5 bg-[#FDFBF7] border border-[#EADFC9] rounded-xl text-[#111111]"
+                className="w-full px-3 py-2.5 bg-[#FDFBF7] border border-[#EADFC9] rounded-xl text-base sm:text-xs text-[#111111] focus:outline-none focus:border-[#C5A059]"
               />
             </div>
             <div className="space-y-1">
@@ -172,7 +172,7 @@ export function LoyaltyPointsManager() {
                 type="text"
                 value={singular}
                 onChange={(e) => setSingular(e.target.value)}
-                className="w-full px-3 py-2.5 bg-[#FDFBF7] border border-[#EADFC9] rounded-xl text-[#111111]"
+                className="w-full px-3 py-2.5 bg-[#FDFBF7] border border-[#EADFC9] rounded-xl text-base sm:text-xs text-[#111111] focus:outline-none focus:border-[#C5A059]"
               />
             </div>
             <div className="space-y-1">
@@ -181,7 +181,7 @@ export function LoyaltyPointsManager() {
                 type="text"
                 value={plural}
                 onChange={(e) => setPlural(e.target.value)}
-                className="w-full px-3 py-2.5 bg-[#FDFBF7] border border-[#EADFC9] rounded-xl text-[#111111]"
+                className="w-full px-3 py-2.5 bg-[#FDFBF7] border border-[#EADFC9] rounded-xl text-base sm:text-xs text-[#111111] focus:outline-none focus:border-[#C5A059]"
               />
             </div>
           </div>
@@ -251,32 +251,34 @@ export function LoyaltyPointsManager() {
       {activeTab === 'ledger' && (
         <div className="bg-white border border-[#EADFC9] rounded-3xl shadow-sm overflow-hidden">
           {ledger.length > 0 ? (
-            <table className="w-full text-xs font-sans">
-              <thead>
-                <tr className="bg-[#FDFBF7] text-gray-500 border-b border-[#EADFC9]">
-                  <th className="text-left px-6 py-4 font-semibold uppercase tracking-wider">Date</th>
-                  <th className="text-left px-4 py-4 font-semibold uppercase tracking-wider">User</th>
-                  <th className="text-left px-4 py-4 font-semibold uppercase tracking-wider">Reason</th>
-                  <th className="text-right px-6 py-4 font-semibold uppercase tracking-wider">Points</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#F4EAD3]">
-                {ledger.map((entry) => (
-                  <tr key={entry.id} className="hover:bg-[#FDFBF7] transition-colors">
-                    <td className="px-6 py-4 text-gray-500">
-                      {new Date(entry.created_at).toLocaleDateString()}
-                    </td>
-                    <td className="px-4 py-4 text-gray-600 font-mono text-[10px]">{entry.user_id.slice(0, 12)}...</td>
-                    <td className="px-4 py-4 text-[#111111]">{entry.reason}</td>
-                    <td className="px-6 py-4 text-right">
-                      <span className={`font-serif font-bold ${entry.points > 0 ? 'text-emerald-700' : 'text-rose-600'}`}>
-                        {entry.points > 0 ? '+' : ''}{entry.points}
-                      </span>
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs font-sans min-w-[500px]">
+                <thead>
+                  <tr className="bg-[#FDFBF7] text-gray-500 border-b border-[#EADFC9]">
+                    <th className="text-left px-6 py-4 font-semibold uppercase tracking-wider">Date</th>
+                    <th className="text-left px-4 py-4 font-semibold uppercase tracking-wider">User</th>
+                    <th className="text-left px-4 py-4 font-semibold uppercase tracking-wider">Reason</th>
+                    <th className="text-right px-6 py-4 font-semibold uppercase tracking-wider">Points</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-[#F4EAD3]">
+                  {ledger.map((entry) => (
+                    <tr key={entry.id} className="hover:bg-[#FDFBF7] transition-colors">
+                      <td className="px-6 py-4 text-gray-500">
+                        {new Date(entry.created_at).toLocaleDateString()}
+                      </td>
+                      <td className="px-4 py-4 text-gray-600 font-mono text-[10px]">{entry.user_id.slice(0, 12)}...</td>
+                      <td className="px-4 py-4 text-[#111111]">{entry.reason}</td>
+                      <td className="px-6 py-4 text-right">
+                        <span className={`font-serif font-bold ${entry.points > 0 ? 'text-emerald-700' : 'text-rose-600'}`}>
+                          {entry.points > 0 ? '+' : ''}{entry.points}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           ) : (
             <div className="p-16 text-center space-y-3">
               <div className="w-14 h-14 rounded-full bg-[#F8F3E6] text-[#C5A059] flex items-center justify-center mx-auto">

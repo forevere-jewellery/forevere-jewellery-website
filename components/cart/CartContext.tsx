@@ -1,9 +1,10 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { Product, CartItem } from '@/types/database';
 import { useAuth } from '@/components/auth/AuthContext';
 import { mockDB } from '@/lib/supabase/mock-db';
+import { createClient, isRealSupabaseConfigured } from '@/lib/supabase/client';
 
 interface CartContextType {
   cartItems: CartItem[];
@@ -25,40 +26,67 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
 
-  // Load cart on initial mount or when user changes
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      loadCart();
-    }
-  }, [user]);
+  const supabase = createClient();
 
-  const loadCart = () => {
+  const loadCart = useCallback(async () => {
     mockDB.loadFromLocalStorage();
 
     if (user) {
-      // User cart
-      const userCart = mockDB.cartItems.filter((i) => i.user_id === user.id);
+      let activeCart: CartItem[] = [];
+
+      if (isRealSupabaseConfigured()) {
+        try {
+          const { data: dbCart } = await supabase
+            .from('cart_items')
+            .select('*, product:products(*)')
+            .eq('user_id', user.id);
+
+          if (dbCart && dbCart.length > 0) {
+            activeCart = dbCart;
+          }
+        } catch (err) {
+          console.warn('[CartContext] Failed loading cart from Supabase:', err);
+        }
+      }
+
+      // If nothing in DB, check local mockDB
+      if (activeCart.length === 0) {
+        activeCart = mockDB.cartItems.filter((i) => i.user_id === user.id);
+      }
+
       // Merge any guest cart from localStorage
       try {
         const guestCartStr = localStorage.getItem('fj_guest_cart');
         if (guestCartStr) {
           const guestCart: CartItem[] = JSON.parse(guestCartStr);
           guestCart.forEach((guestItem) => {
-            const existing = userCart.find((i) => i.product_id === guestItem.product_id);
+            const existing = activeCart.find((i) => i.product_id === guestItem.product_id);
             if (existing) {
               existing.quantity += guestItem.quantity;
             } else {
-              userCart.push({ ...guestItem, user_id: user.id });
+              activeCart.push({ ...guestItem, user_id: user.id });
             }
           });
           localStorage.removeItem('fj_guest_cart');
-          mockDB.cartItems = userCart;
+
+          // Sync to Supabase
+          if (isRealSupabaseConfigured()) {
+            for (const item of activeCart) {
+              await supabase.from('cart_items').upsert({
+                user_id: user.id,
+                product_id: item.product_id,
+                quantity: item.quantity,
+              });
+            }
+          }
+          mockDB.cartItems = activeCart;
           mockDB.saveToLocalStorage();
         }
       } catch {
         // ignore
       }
-      setCartItems(userCart);
+
+      setCartItems(activeCart);
     } else {
       // Guest cart
       try {
@@ -72,12 +100,36 @@ export function CartProvider({ children }: { children: ReactNode }) {
         setCartItems([]);
       }
     }
-  };
+  }, [user, supabase]);
 
-  const saveCart = (items: CartItem[]) => {
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      loadCart();
+    }
+  }, [loadCart]);
+
+  const saveCart = async (items: CartItem[]) => {
     setCartItems(items);
+
     if (user) {
-      // Update in mockDB
+      if (isRealSupabaseConfigured()) {
+        try {
+          // Clear and recreate user's cart in Supabase
+          await supabase.from('cart_items').delete().eq('user_id', user.id);
+          if (items.length > 0) {
+            await supabase.from('cart_items').insert(
+              items.map((i) => ({
+                user_id: user.id,
+                product_id: i.product_id,
+                quantity: i.quantity,
+              }))
+            );
+          }
+        } catch (err) {
+          console.warn('[CartContext] Failed syncing cart to Supabase:', err);
+        }
+      }
+
       const otherUserCarts = mockDB.cartItems.filter((i) => i.user_id !== user.id);
       mockDB.cartItems = [...otherUserCarts, ...items];
       mockDB.saveToLocalStorage();

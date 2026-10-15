@@ -13,7 +13,7 @@ const CONCIERGE_KNOWLEDGE: Record<string, string> = {
   bracelets: 'Our bracelet catalog features our renowned Elysian Diamond Tennis Bracelet, delicate chain bracelets, and solid gold bangles.',
   hallmark: 'Every Forevere jewel is BIS Hallmark certified with comprehensive purity and authenticity documentation.',
   offers: 'We offer tiered spend discounts on orders above ₹10,000, along with periodic festive promotional benefits.',
-  default: "Thank you for contacting Forevere Jewellary Concierge! I'm delighted to assist you with our luxury collections, insured shipping, sizing consultations, and store policies.",
+  default: "Thank you for contacting Forevere Jewellery Concierge! I'm delighted to assist you with our luxury collections, insured shipping, sizing consultations, and store policies.",
 };
 
 function sanitizeInput(text: string): string {

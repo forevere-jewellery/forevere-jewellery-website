@@ -3,13 +3,16 @@ export type UserRole = 'customer' | 'admin';
 export interface UserProfile {
   id: string;
   full_name: string | null;
+  email?: string | null;
   phone: string | null;
   phone_verified: boolean;
   role: UserRole;
+  points?: number;
   loyalty_points: number;
   referral_code: string | null;
   referred_by: string | null;
   created_at: string;
+  updated_at?: string;
 }
 
 export interface Category {

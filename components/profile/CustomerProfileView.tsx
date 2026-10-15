@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useAuth } from '@/components/auth/AuthContext';
 import { useToast } from '@/components/ui/Toast';
 import { mockDB } from '@/lib/supabase/mock-db';
+import { createClient, isRealSupabaseConfigured } from '@/lib/supabase/client';
 import { Order, Address, PointsLedgerEntry } from '@/types/database';
 import {
   User,
@@ -54,8 +55,46 @@ export function CustomerProfileView() {
     loadData();
   }, [user]);
 
-  const loadData = () => {
+  const loadData = async () => {
     if (!user) return;
+
+    if (isRealSupabaseConfigured()) {
+      try {
+        const supabase = createClient();
+
+        // 1. Fetch real addresses
+        const { data: dbAddrs } = await supabase
+          .from('addresses')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('is_default', { ascending: false });
+
+        if (dbAddrs) setAddresses(dbAddrs);
+
+        // 2. Fetch real orders with order items
+        const { data: dbOrders } = await supabase
+          .from('orders')
+          .select('*, items:order_items(*)')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (dbOrders) setOrders(dbOrders);
+
+        // 3. Fetch real points ledger
+        const { data: dbPoints } = await supabase
+          .from('points_ledger')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (dbPoints) setPointsLedger(dbPoints);
+        return;
+      } catch (err) {
+        console.warn('[CustomerProfileView] Failed to load data from Supabase, falling back to local store:', err);
+      }
+    }
+
+    // Local storage fallback
     mockDB.loadFromLocalStorage();
     setOrders(mockDB.orders.filter((o) => o.user_id === user.id));
     setAddresses(mockDB.addresses.filter((a) => a.user_id === user.id));
@@ -84,9 +123,41 @@ export function CustomerProfileView() {
     }));
   };
 
-  const handleSaveAddress = (e: React.FormEvent) => {
+  const handleSaveAddress = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+
+    if (isRealSupabaseConfigured()) {
+      try {
+        const supabase = createClient();
+        const { data, error } = await supabase
+          .from('addresses')
+          .insert({
+            user_id: user.id,
+            label: 'Delivery Address',
+            full_name: addrName.trim(),
+            phone: addrPhone.trim(),
+            line1: addrLine1.trim(),
+            city: addrCity.trim(),
+            state: addrState.trim(),
+            pincode: addrPincode.trim(),
+            is_default: addresses.length === 0,
+          })
+          .select()
+          .single();
+
+        if (!error && data) {
+          setIsAddingAddr(false);
+          setAddrName(''); setAddrPhone(''); setAddrLine1(''); setAddrCity(''); setAddrState(''); setAddrPincode('');
+          await loadData();
+          showToast('Address Saved', 'New delivery address added.', 'success');
+          return;
+        }
+      } catch (err) {
+        console.warn('[CustomerProfileView] Failed saving address to Supabase:', err);
+      }
+    }
+
     const newAddr: Address = {
       id: 'addr-' + Date.now(),
       user_id: user.id,
@@ -108,7 +179,21 @@ export function CustomerProfileView() {
     showToast('Address Saved', 'New delivery address added.', 'success');
   };
 
-  const deleteAddress = (id: string) => {
+  const deleteAddress = async (id: string) => {
+    if (!user) return;
+    if (isRealSupabaseConfigured()) {
+      try {
+        const supabase = createClient();
+        await supabase
+          .from('addresses')
+          .delete()
+          .eq('id', id)
+          .eq('user_id', user.id);
+      } catch (err) {
+        console.warn('[CustomerProfileView] Failed deleting address from Supabase:', err);
+      }
+    }
+
     mockDB.addresses = mockDB.addresses.filter((a) => a.id !== id);
     mockDB.saveToLocalStorage();
     loadData();
@@ -227,24 +312,26 @@ export function CustomerProfileView() {
                     {/* Delivery Tracking Timeline */}
                     <div className="border-t border-[#F4EAD3] pt-4">
                       <h4 className="text-[10px] uppercase tracking-wider text-gray-500 font-sans font-semibold mb-3">Delivery Tracking</h4>
-                      <div className="flex items-center gap-1">
-                        {getTrackingSteps(order.status).map((step, idx) => (
-                          <React.Fragment key={step.name}>
-                            <div className="flex flex-col items-center gap-1 text-center">
-                              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                                step.completed ? 'bg-[#C5A059] text-white' : 'bg-gray-200 text-gray-400'
-                              } ${step.current ? 'ring-2 ring-[#C5A059]/30 ring-offset-2' : ''}`}>
-                                {step.completed ? <CheckCircle2 className="w-3 h-3" /> : idx + 1}
+                      <div className="overflow-x-auto pb-2">
+                        <div className="flex items-center gap-1 min-w-[320px]">
+                          {getTrackingSteps(order.status).map((step, idx) => (
+                            <React.Fragment key={step.name}>
+                              <div className="flex flex-col items-center gap-1 text-center shrink-0">
+                                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                                  step.completed ? 'bg-[#C5A059] text-white' : 'bg-gray-200 text-gray-400'
+                                } ${step.current ? 'ring-2 ring-[#C5A059]/30 ring-offset-2' : ''}`}>
+                                  {step.completed ? <CheckCircle2 className="w-3 h-3" /> : idx + 1}
+                                </div>
+                                <span className={`text-[9px] font-sans whitespace-nowrap ${step.completed ? 'text-[#111111] font-semibold' : 'text-gray-400'}`}>
+                                  {step.name}
+                                </span>
                               </div>
-                              <span className={`text-[9px] font-sans whitespace-nowrap ${step.completed ? 'text-[#111111] font-semibold' : 'text-gray-400'}`}>
-                                {step.name}
-                              </span>
-                            </div>
-                            {idx < 4 && (
-                              <div className={`flex-1 h-0.5 ${step.completed ? 'bg-[#C5A059]' : 'bg-gray-200'}`} />
-                            )}
-                          </React.Fragment>
-                        ))}
+                              {idx < 4 && (
+                                <div className={`flex-1 h-0.5 min-w-[20px] ${step.completed ? 'bg-[#C5A059]' : 'bg-gray-200'}`} />
+                              )}
+                            </React.Fragment>
+                          ))}
+                        </div>
                       </div>
                     </div>
 
@@ -291,7 +378,7 @@ export function CustomerProfileView() {
           <div className="flex justify-end">
             <button
               onClick={() => setIsAddingAddr(!isAddingAddr)}
-              className="px-5 py-2.5 bg-[#111111] hover:bg-[#C5A059] text-white rounded-full text-xs font-sans font-semibold flex items-center gap-2 transition-colors"
+              className="px-5 py-2.5 min-h-[44px] bg-[#111111] hover:bg-[#C5A059] text-white rounded-full text-xs font-sans font-semibold flex items-center gap-2 transition-colors"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>{isAddingAddr ? 'Cancel' : 'Add New Address'}</span>
@@ -300,35 +387,35 @@ export function CustomerProfileView() {
 
           {isAddingAddr && (
             <form onSubmit={handleSaveAddress} className="bg-white border border-[#EADFC9] rounded-2xl p-6 space-y-4 text-xs font-sans shadow-sm animate-in fade-in">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <label className="font-semibold text-gray-700 uppercase tracking-wider text-[10px]">Full Name *</label>
-                  <input type="text" required value={addrName} onChange={(e) => setAddrName(e.target.value)} className="w-full px-3 py-2 bg-[#FDFBF7] border border-[#EADFC9] rounded-xl text-[#111111]" />
+                  <input type="text" required value={addrName} onChange={(e) => setAddrName(e.target.value)} className="w-full px-3 py-2.5 bg-[#FDFBF7] border border-[#EADFC9] rounded-xl text-base sm:text-xs text-[#111111] focus:outline-none focus:border-[#C5A059]" />
                 </div>
                 <div className="space-y-1">
                   <label className="font-semibold text-gray-700 uppercase tracking-wider text-[10px]">Phone *</label>
-                  <input type="tel" required value={addrPhone} onChange={(e) => setAddrPhone(e.target.value)} className="w-full px-3 py-2 bg-[#FDFBF7] border border-[#EADFC9] rounded-xl text-[#111111]" />
+                  <input type="tel" required value={addrPhone} onChange={(e) => setAddrPhone(e.target.value)} className="w-full px-3 py-2.5 bg-[#FDFBF7] border border-[#EADFC9] rounded-xl text-base sm:text-xs text-[#111111] focus:outline-none focus:border-[#C5A059]" />
                 </div>
               </div>
               <div className="space-y-1">
                 <label className="font-semibold text-gray-700 uppercase tracking-wider text-[10px]">Address *</label>
-                <input type="text" required value={addrLine1} onChange={(e) => setAddrLine1(e.target.value)} className="w-full px-3 py-2 bg-[#FDFBF7] border border-[#EADFC9] rounded-xl text-[#111111]" />
+                <input type="text" required value={addrLine1} onChange={(e) => setAddrLine1(e.target.value)} className="w-full px-3 py-2.5 bg-[#FDFBF7] border border-[#EADFC9] rounded-xl text-base sm:text-xs text-[#111111] focus:outline-none focus:border-[#C5A059]" />
               </div>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="space-y-1">
                   <label className="font-semibold text-gray-700 uppercase tracking-wider text-[10px]">City *</label>
-                  <input type="text" required value={addrCity} onChange={(e) => setAddrCity(e.target.value)} className="w-full px-3 py-2 bg-[#FDFBF7] border border-[#EADFC9] rounded-xl text-[#111111]" />
+                  <input type="text" required value={addrCity} onChange={(e) => setAddrCity(e.target.value)} className="w-full px-3 py-2.5 bg-[#FDFBF7] border border-[#EADFC9] rounded-xl text-base sm:text-xs text-[#111111] focus:outline-none focus:border-[#C5A059]" />
                 </div>
                 <div className="space-y-1">
                   <label className="font-semibold text-gray-700 uppercase tracking-wider text-[10px]">State *</label>
-                  <input type="text" required value={addrState} onChange={(e) => setAddrState(e.target.value)} className="w-full px-3 py-2 bg-[#FDFBF7] border border-[#EADFC9] rounded-xl text-[#111111]" />
+                  <input type="text" required value={addrState} onChange={(e) => setAddrState(e.target.value)} className="w-full px-3 py-2.5 bg-[#FDFBF7] border border-[#EADFC9] rounded-xl text-base sm:text-xs text-[#111111] focus:outline-none focus:border-[#C5A059]" />
                 </div>
                 <div className="space-y-1">
                   <label className="font-semibold text-gray-700 uppercase tracking-wider text-[10px]">Pincode *</label>
-                  <input type="text" required value={addrPincode} onChange={(e) => setAddrPincode(e.target.value)} className="w-full px-3 py-2 bg-[#FDFBF7] border border-[#EADFC9] rounded-xl text-[#111111]" />
+                  <input type="text" required value={addrPincode} onChange={(e) => setAddrPincode(e.target.value)} className="w-full px-3 py-2.5 bg-[#FDFBF7] border border-[#EADFC9] rounded-xl text-base sm:text-xs text-[#111111] focus:outline-none focus:border-[#C5A059]" />
                 </div>
               </div>
-              <button type="submit" className="px-6 py-2.5 bg-[#111111] hover:bg-[#C5A059] text-white rounded-full font-semibold transition-colors">Save Address</button>
+              <button type="submit" className="px-6 py-2.5 min-h-[44px] bg-[#111111] hover:bg-[#C5A059] text-white rounded-full font-semibold transition-colors">Save Address</button>
             </form>
           )}
 
@@ -419,21 +506,22 @@ export function CustomerProfileView() {
 
           <div className="bg-[#F8F3E6] border border-[#EADFC9] rounded-2xl p-6 text-center space-y-3">
             <p className="text-[10px] uppercase tracking-wider text-gray-500 font-sans">Your Referral Code</p>
-            <div className="flex items-center justify-center gap-3">
-              <span className="font-mono text-2xl font-bold text-[#111111] bg-white px-6 py-3 rounded-xl border border-[#EADFC9]">
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <span className="font-mono text-xl sm:text-2xl font-bold text-[#111111] bg-white px-4 sm:px-6 py-3 rounded-xl border border-[#EADFC9] break-all">
                 {user.referral_code || 'FOREVERE-' + user.id.slice(0, 6).toUpperCase()}
               </span>
               <button
                 onClick={copyReferralCode}
-                className="p-3 bg-[#111111] text-[#C5A059] rounded-xl hover:bg-[#C5A059] hover:text-white transition-colors"
+                className="p-3 min-w-[44px] min-h-[44px] flex items-center justify-center bg-[#111111] text-[#C5A059] rounded-xl hover:bg-[#C5A059] hover:text-white transition-colors"
                 title="Copy Code"
+                aria-label="Copy Referral Code"
               >
                 <Copy className="w-5 h-5" />
               </button>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 text-xs font-sans">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-sans">
             <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 text-center space-y-1">
               <p className="text-emerald-800 font-semibold">You Earn</p>
               <p className="font-serif font-bold text-xl text-emerald-700">50 Points</p>

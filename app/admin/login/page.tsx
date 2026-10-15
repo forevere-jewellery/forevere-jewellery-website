@@ -29,12 +29,14 @@ export default function AdminLoginPage() {
 
       if (res.ok && data?.success) {
         const adminProfile = {
-          id: 'admin-user-id',
-          full_name: 'Forevere Admin',
+          id: data.user?.id || 'admin-profile',
+          full_name: data.user?.full_name || 'Forevere Admin',
+          email: data.user?.email || email,
           phone: '',
           phone_verified: true,
           role: 'admin' as const,
           loyalty_points: 0,
+          points: 0,
           referral_code: '',
           referred_by: null,
           created_at: new Date().toISOString(),
@@ -68,7 +70,7 @@ export default function AdminLoginPage() {
             <ShieldCheck className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-2xl font-serif tracking-tight text-white">FOREVERE JEWELLARY</h1>
+            <h1 className="text-2xl font-serif tracking-tight text-white">FOREVERE JEWELLERY</h1>
             <span className="text-[10px] font-sans uppercase tracking-[0.3em] text-[#C5A059]">
               Executive Admin Portal
             </span>
@@ -100,7 +102,7 @@ export default function AdminLoginPage() {
                 autoComplete="off"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-gray-900 border border-gray-800 rounded-xl text-xs text-white focus:outline-none focus:border-[#C5A059]"
+                className="w-full pl-10 pr-4 py-2.5 bg-gray-900 border border-gray-800 rounded-xl text-base sm:text-xs text-white focus:outline-none focus:border-[#C5A059]"
                 placeholder="Enter authorized email"
               />
             </div>
@@ -118,7 +120,7 @@ export default function AdminLoginPage() {
                 autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-gray-900 border border-gray-800 rounded-xl text-xs text-white focus:outline-none focus:border-[#C5A059]"
+                className="w-full pl-10 pr-4 py-2.5 bg-gray-900 border border-gray-800 rounded-xl text-base sm:text-xs text-white focus:outline-none focus:border-[#C5A059]"
                 placeholder="••••••••"
               />
             </div>

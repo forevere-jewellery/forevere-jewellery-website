@@ -42,11 +42,11 @@ export function CartDrawer() {
         className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity animate-in fade-in"
       />
 
-      <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
+      <div className="fixed inset-y-0 right-0 max-w-full flex pl-4 sm:pl-10">
         <div className="w-screen max-w-md bg-[#FDFBF7] border-l border-[#EADFC9] shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-300">
           
           {/* Header */}
-          <div className="p-6 border-b border-[#EADFC9] flex items-center justify-between">
+          <div className="p-5 sm:p-6 border-b border-[#EADFC9] flex items-center justify-between">
             <div className="flex items-center gap-2">
               <ShoppingBag className="w-5 h-5 text-[#C5A059]" />
               <h2 className="font-serif text-lg font-semibold text-[#111111]">
@@ -55,7 +55,8 @@ export function CartDrawer() {
             </div>
             <button
               onClick={closeCart}
-              className="text-gray-400 hover:text-[#111111] p-1 rounded-full hover:bg-black/5 transition-colors"
+              className="text-gray-400 hover:text-[#111111] p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full hover:bg-black/5 transition-colors"
+              aria-label="Close Shopping Bag"
             >
               <X className="w-5 h-5" />
             </button>
@@ -91,10 +92,11 @@ export function CartDrawer() {
                             </h3>
                             <button
                               onClick={() => removeFromCart(product.id)}
-                              className="text-gray-400 hover:text-rose-600 transition-colors p-1"
+                              className="text-gray-400 hover:text-rose-600 transition-colors p-1.5 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-lg"
                               title="Remove item"
+                              aria-label="Remove item"
                             >
-                              <Trash2 className="w-3.5 h-3.5" />
+                              <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
 
@@ -112,19 +114,21 @@ export function CartDrawer() {
 
                         {/* Quantity Stepper */}
                         <div className="flex items-center gap-3 pt-2">
-                          <div className="flex items-center border border-[#EADFC9] rounded-full bg-white px-2 py-0.5 gap-2">
+                          <div className="flex items-center border border-[#EADFC9] rounded-full bg-white px-1.5 py-0.5 gap-1">
                             <button
                               onClick={() => updateQuantity(product.id, item.quantity - 1)}
-                              className="text-gray-500 hover:text-[#111111] p-1"
+                              className="text-gray-500 hover:text-[#111111] p-1.5 min-w-[32px] min-h-[32px] flex items-center justify-center"
+                              aria-label="Decrease quantity"
                             >
                               <Minus className="w-3 h-3" />
                             </button>
-                            <span className="text-xs font-serif font-bold w-4 text-center">
+                            <span className="text-xs font-serif font-bold w-5 text-center">
                               {item.quantity}
                             </span>
                             <button
                               onClick={() => updateQuantity(product.id, item.quantity + 1)}
-                              className="text-gray-500 hover:text-[#111111] p-1"
+                              className="text-gray-500 hover:text-[#111111] p-1.5 min-w-[32px] min-h-[32px] flex items-center justify-center"
+                              aria-label="Increase quantity"
                             >
                               <Plus className="w-3 h-3" />
                             </button>

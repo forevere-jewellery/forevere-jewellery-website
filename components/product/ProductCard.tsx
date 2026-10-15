@@ -62,8 +62,9 @@ export function ProductCard({ product }: ProductCardProps) {
           {/* Quick Add overlay button */}
           <button
             onClick={handleAddToCart}
-            className="absolute bottom-3 right-3 bg-white/95 text-[#111111] hover:bg-[#C5A059] hover:text-white p-2.5 rounded-full shadow-lg transition-colors opacity-0 group-hover:opacity-100"
+            className="absolute bottom-3 right-3 bg-white/95 text-[#111111] hover:bg-[#C5A059] hover:text-white p-2.5 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-full shadow-lg transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
             title="Quick Add to Cart"
+            aria-label={`Quick add ${product.name} to cart`}
           >
             <ShoppingBag className="w-4 h-4" />
           </button>

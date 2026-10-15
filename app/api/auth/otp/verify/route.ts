@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { checkRateLimit, getClientIp } from '@/lib/security/rate-limit';
 import { otpVerifySchema } from '@/lib/security/validation';
 import { verifyOtp } from '@/lib/security/otp';
+import { isRealSupabaseConfigured } from '@/lib/supabase/client';
+import { createClient as createServerSupabaseClient } from '@/lib/supabase/server';
 
 export async function POST(request: Request) {
   try {
@@ -26,6 +28,46 @@ export async function POST(request: Request) {
     }
 
     const { phone, otp } = parsed.data;
+
+    let formattedPhone = phone.trim();
+    if (!formattedPhone.startsWith('+')) {
+      const digits = formattedPhone.replace(/\D/g, '');
+      formattedPhone = digits.length === 10 ? `+91${digits}` : `+${digits}`;
+    }
+
+    if (isRealSupabaseConfigured()) {
+      const supabase = await createServerSupabaseClient();
+      const { data, error } = await supabase.auth.verifyOtp({
+        phone: formattedPhone,
+        token: otp.trim(),
+        type: 'sms',
+      });
+
+      if (error || !data.user) {
+        return NextResponse.json(
+          { success: false, error: error?.message || 'Invalid verification code.' },
+          { status: 400 }
+        );
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', data.user.id)
+        .single();
+
+      return NextResponse.json({
+        success: true,
+        message: 'Phone number verified successfully.',
+        user: {
+          id: data.user.id,
+          phone: formattedPhone,
+          fullName: profile?.full_name || null,
+        },
+      });
+    }
+
+    // Local development fallback
     const verificationResult = verifyOtp(phone, otp);
 
     if (!verificationResult.success) {
@@ -35,11 +77,12 @@ export async function POST(request: Request) {
       );
     }
 
+    const mockId = '00000000-0000-0000-0000-' + Math.random().toString(36).substring(2, 14).padEnd(12, '0');
     return NextResponse.json({
       success: true,
       message: 'Phone number verified successfully.',
       user: {
-        id: 'u-' + Math.random().toString(36).substring(2, 11),
+        id: mockId,
         phone,
       },
     });

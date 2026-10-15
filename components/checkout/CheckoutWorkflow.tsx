@@ -6,6 +6,7 @@ import { useAuth } from '@/components/auth/AuthContext';
 import { useCart } from '@/components/cart/CartContext';
 import { useToast } from '@/components/ui/Toast';
 import { mockDB } from '@/lib/supabase/mock-db';
+import { createClient, isRealSupabaseConfigured } from '@/lib/supabase/client';
 import { processPayment } from '@/lib/payment/adapter';
 import { Address, Coupon, SpendDiscountTier, PaymentMethod, Order } from '@/types/database';
 import {
@@ -73,31 +74,53 @@ export function CheckoutWorkflow() {
       setPaymentMethods(mockDB.paymentMethods.filter((m) => m.enabled));
 
       // User addresses
-      const userAddrs = mockDB.addresses.filter((a) => a.user_id === user.id);
-      if (userAddrs.length > 0) {
-        setAddresses(userAddrs);
-        const def = userAddrs.find((a) => a.is_default) || userAddrs[0];
-        setSelectedAddressId(def.id);
+      if (isRealSupabaseConfigured()) {
+        try {
+          const supabase = createClient();
+          supabase
+            .from('addresses')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('is_default', { ascending: false })
+            .then(({ data }: any) => {
+              if (data && data.length > 0) {
+                setAddresses(data);
+                const def = data.find((a: any) => a.is_default) || data[0];
+                setSelectedAddressId(def.id);
+              } else {
+                setAddresses([]);
+                setIsAddingAddress(true);
+              }
+            });
+        } catch (err) {
+          console.warn('[CheckoutWorkflow] Could not load addresses from Supabase:', err);
+        }
       } else {
-        // Initialize default mock address if empty
-        const sampleAddr: Address = {
-          id: 'addr-' + Date.now(),
-          user_id: user.id,
-          label: 'Home',
-          full_name: user.full_name || 'Elena Rostova',
-          phone: user.phone || '+91 98765 43210',
-          line1: 'Penthouse 4B, Emerald Luxury Heights',
-          line2: 'Marine Drive',
-          city: 'Mumbai',
-          state: 'Maharashtra',
-          pincode: '400020',
-          is_default: true,
-          created_at: new Date().toISOString()
-        };
-        mockDB.addresses.push(sampleAddr);
-        mockDB.saveToLocalStorage();
-        setAddresses([sampleAddr]);
-        setSelectedAddressId(sampleAddr.id);
+        const userAddrs = mockDB.addresses.filter((a) => a.user_id === user.id);
+        if (userAddrs.length > 0) {
+          setAddresses(userAddrs);
+          const def = userAddrs.find((a) => a.is_default) || userAddrs[0];
+          setSelectedAddressId(def.id);
+        } else {
+          const sampleAddr: Address = {
+            id: 'addr-' + Date.now(),
+            user_id: user.id,
+            label: 'Home',
+            full_name: user.full_name || 'Valued Customer',
+            phone: user.phone || '+91 9876543210',
+            line1: '101 Jewelry Lane',
+            line2: 'Bandra West',
+            city: 'Mumbai',
+            state: 'Maharashtra',
+            pincode: '400050',
+            is_default: true,
+            created_at: new Date().toISOString()
+          };
+          mockDB.addresses.push(sampleAddr);
+          mockDB.saveToLocalStorage();
+          setAddresses([sampleAddr]);
+          setSelectedAddressId(sampleAddr.id);
+        }
       }
     }
   }, [user]);
@@ -135,16 +158,50 @@ export function CheckoutWorkflow() {
   const finalTotal = Math.max(0, subtotal - totalDiscount);
 
   // Address creation
-  const handleSaveNewAddress = (e: React.FormEvent) => {
+  const handleSaveNewAddress = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+
+    if (isRealSupabaseConfigured()) {
+      try {
+        const supabase = createClient();
+        const { data: dbAddr } = await supabase
+          .from('addresses')
+          .insert({
+            user_id: user.id,
+            label: 'Delivery Address',
+            full_name: addrName.trim() || user.full_name || 'Customer',
+            phone: addrPhone.trim() || user.phone || '+91 9876543210',
+            line1: addrLine1.trim(),
+            line2: addrLine2.trim() || null,
+            city: addrCity.trim(),
+            state: addrState.trim(),
+            pincode: addrPincode.trim(),
+            is_default: addresses.length === 0,
+          })
+          .select()
+          .single();
+
+        if (dbAddr) {
+          const updated = [...addresses, dbAddr];
+          setAddresses(updated);
+          setSelectedAddressId(dbAddr.id);
+          setIsAddingAddress(false);
+          setAddrName(''); setAddrPhone(''); setAddrLine1(''); setAddrLine2(''); setAddrCity(''); setAddrState(''); setAddrPincode('');
+          showToast('Address Saved', 'New delivery address added successfully.', 'success');
+          return;
+        }
+      } catch (err) {
+        console.warn('[CheckoutWorkflow] Could not save address to Supabase:', err);
+      }
+    }
 
     const newAddr: Address = {
       id: 'addr-' + Date.now(),
       user_id: user.id,
       label: 'Delivery Address',
       full_name: addrName.trim() || user.full_name || 'Customer',
-      phone: addrPhone.trim() || user.phone || '+91 98765 43210',
+      phone: addrPhone.trim() || user.phone || '+91 9876543210',
       line1: addrLine1.trim(),
       line2: addrLine2.trim() || null,
       city: addrCity.trim(),
@@ -210,7 +267,7 @@ export function CheckoutWorkflow() {
 
     setIsProcessing(true);
 
-    const orderId = 'ORD-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+    let orderId = 'ORD-' + Math.random().toString(36).substr(2, 9).toUpperCase();
 
     // Call payment adapter
     const paymentResult = await processPayment({
@@ -225,7 +282,69 @@ export function CheckoutWorkflow() {
     });
 
     if (paymentResult.success) {
-      // 1. Create Order Record
+      // 1. Create Order Record in Supabase if configured
+      if (isRealSupabaseConfigured()) {
+        try {
+          const supabase = createClient();
+          const { data: dbOrder, error: dbOrderError } = await supabase
+            .from('orders')
+            .insert({
+              user_id: user.id,
+              status: 'placed',
+              subtotal,
+              discount_amount: totalDiscount,
+              coupon_code: appliedCoupon ? appliedCoupon.code : null,
+              shipping_address_id: (shippingAddress.id && !shippingAddress.id.startsWith('addr-')) ? shippingAddress.id : null,
+              payment_method: selectedPaymentMethod,
+              payment_status: selectedPaymentMethod === 'Cash on Delivery (COD)' ? 'pending' : 'paid',
+              total: finalTotal,
+              gift_message: isGift ? giftMessage : null,
+              is_gift: isGift,
+            })
+            .select()
+            .single();
+
+          if (dbOrder && !dbOrderError) {
+            orderId = dbOrder.id;
+
+            const orderItemsToInsert = cartItems.map((item) => {
+              const prod = item.product || mockDB.products.find((p) => p.id === item.product_id);
+              const priceSnapshot = prod?.discount_percent && prod.discount_percent > 0
+                ? prod.price * (1 - prod.discount_percent / 100)
+                : prod?.price || 0;
+              return {
+                order_id: dbOrder.id,
+                product_id: item.product_id,
+                product_name_snapshot: prod?.name || 'Fine Jewelry Piece',
+                price_snapshot: priceSnapshot,
+                quantity: item.quantity,
+              };
+            });
+
+            await supabase.from('order_items').insert(orderItemsToInsert);
+
+            const pointsRate = mockDB.pointsSettings.points_per_currency_unit || 0.05;
+            const earnedPoints = Math.floor(finalTotal * pointsRate);
+            if (earnedPoints > 0) {
+              await supabase.from('points_ledger').insert({
+                user_id: user.id,
+                points: earnedPoints,
+                reason: `Earned on Order #${dbOrder.id}`,
+                order_id: dbOrder.id,
+              });
+
+              await supabase.from('profiles').update({
+                points: (user.loyalty_points || 0) + earnedPoints,
+                loyalty_points: (user.loyalty_points || 0) + earnedPoints,
+              }).eq('id', user.id);
+            }
+          }
+        } catch (err) {
+          console.warn('[CheckoutWorkflow] Could not save order to Supabase:', err);
+        }
+      }
+
+      // Also maintain local mockDB for offline UI state & immediate view
       const newOrder: Order = {
         id: orderId,
         user_id: user.id,
@@ -321,7 +440,7 @@ export function CheckoutWorkflow() {
           
           <button
             onClick={() => setStep(1)}
-            className={`flex items-center gap-2 font-semibold ${
+            className={`flex items-center gap-2 font-semibold min-h-[44px] px-2 ${
               step >= 1 ? 'text-[#111111]' : 'text-gray-400'
             }`}
           >
@@ -335,11 +454,11 @@ export function CheckoutWorkflow() {
             <span className="hidden sm:inline">Shipping Address</span>
           </button>
 
-          <div className={`flex-1 h-0.5 mx-4 ${step >= 2 ? 'bg-[#C5A059]' : 'bg-gray-200'}`} />
+          <div className={`flex-1 h-0.5 mx-2 sm:mx-4 ${step >= 2 ? 'bg-[#C5A059]' : 'bg-gray-200'}`} />
 
           <button
             onClick={() => setStep(2)}
-            className={`flex items-center gap-2 font-semibold ${
+            className={`flex items-center gap-2 font-semibold min-h-[44px] px-2 ${
               step >= 2 ? 'text-[#111111]' : 'text-gray-400'
             }`}
           >
@@ -353,11 +472,11 @@ export function CheckoutWorkflow() {
             <span className="hidden sm:inline">Review &amp; Discounts</span>
           </button>
 
-          <div className={`flex-1 h-0.5 mx-4 ${step >= 3 ? 'bg-[#C5A059]' : 'bg-gray-200'}`} />
+          <div className={`flex-1 h-0.5 mx-2 sm:mx-4 ${step >= 3 ? 'bg-[#C5A059]' : 'bg-gray-200'}`} />
 
           <button
             onClick={() => setStep(3)}
-            className={`flex items-center gap-2 font-semibold ${
+            className={`flex items-center gap-2 font-semibold min-h-[44px] px-2 ${
               step >= 3 ? 'text-[#111111]' : 'text-gray-400'
             }`}
           >
@@ -414,7 +533,7 @@ export function CheckoutWorkflow() {
                         placeholder="Elena Rostova"
                         value={addrName}
                         onChange={(e) => setAddrName(e.target.value)}
-                        className="w-full px-3 py-2 bg-[#FDFBF7] border border-[#EADFC9] rounded-xl text-[#111111]"
+                        className="w-full px-3 py-2.5 bg-[#FDFBF7] border border-[#EADFC9] rounded-xl text-base sm:text-xs text-[#111111] focus:outline-none focus:border-[#C5A059]"
                       />
                     </div>
                     <div className="space-y-1">
@@ -427,7 +546,7 @@ export function CheckoutWorkflow() {
                         placeholder="+91 98765 43210"
                         value={addrPhone}
                         onChange={(e) => setAddrPhone(e.target.value)}
-                        className="w-full px-3 py-2 bg-[#FDFBF7] border border-[#EADFC9] rounded-xl text-[#111111]"
+                        className="w-full px-3 py-2.5 bg-[#FDFBF7] border border-[#EADFC9] rounded-xl text-base sm:text-xs text-[#111111] focus:outline-none focus:border-[#C5A059]"
                       />
                     </div>
                   </div>
@@ -442,11 +561,11 @@ export function CheckoutWorkflow() {
                       placeholder="Apartment, building, street name"
                       value={addrLine1}
                       onChange={(e) => setAddrLine1(e.target.value)}
-                      className="w-full px-3 py-2 bg-[#FDFBF7] border border-[#EADFC9] rounded-xl text-[#111111]"
+                      className="w-full px-3 py-2.5 bg-[#FDFBF7] border border-[#EADFC9] rounded-xl text-base sm:text-xs text-[#111111] focus:outline-none focus:border-[#C5A059]"
                     />
                   </div>
 
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div className="space-y-1">
                       <label className="font-semibold text-gray-700 uppercase tracking-wider text-[10px]">City *</label>
                       <input
@@ -455,7 +574,7 @@ export function CheckoutWorkflow() {
                         placeholder="Mumbai"
                         value={addrCity}
                         onChange={(e) => setAddrCity(e.target.value)}
-                        className="w-full px-3 py-2 bg-[#FDFBF7] border border-[#EADFC9] rounded-xl text-[#111111]"
+                        className="w-full px-3 py-2.5 bg-[#FDFBF7] border border-[#EADFC9] rounded-xl text-base sm:text-xs text-[#111111] focus:outline-none focus:border-[#C5A059]"
                       />
                     </div>
                     <div className="space-y-1">
@@ -466,7 +585,7 @@ export function CheckoutWorkflow() {
                         placeholder="Maharashtra"
                         value={addrState}
                         onChange={(e) => setAddrState(e.target.value)}
-                        className="w-full px-3 py-2 bg-[#FDFBF7] border border-[#EADFC9] rounded-xl text-[#111111]"
+                        className="w-full px-3 py-2.5 bg-[#FDFBF7] border border-[#EADFC9] rounded-xl text-base sm:text-xs text-[#111111] focus:outline-none focus:border-[#C5A059]"
                       />
                     </div>
                     <div className="space-y-1">
@@ -477,22 +596,22 @@ export function CheckoutWorkflow() {
                         placeholder="400020"
                         value={addrPincode}
                         onChange={(e) => setAddrPincode(e.target.value)}
-                        className="w-full px-3 py-2 bg-[#FDFBF7] border border-[#EADFC9] rounded-xl text-[#111111]"
+                        className="w-full px-3 py-2.5 bg-[#FDFBF7] border border-[#EADFC9] rounded-xl text-base sm:text-xs text-[#111111] focus:outline-none focus:border-[#C5A059]"
                       />
                     </div>
                   </div>
 
-                  <div className="flex justify-end gap-3 pt-2">
+                  <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-2">
                     <button
                       type="button"
                       onClick={() => setIsAddingAddress(false)}
-                      className="px-4 py-2 border border-gray-300 rounded-full text-gray-600 hover:bg-gray-50"
+                      className="px-5 py-2.5 min-h-[44px] flex items-center justify-center border border-gray-300 rounded-full text-gray-600 hover:bg-gray-50 text-xs font-sans transition-colors"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
-                      className="px-6 py-2 bg-[#111111] hover:bg-[#C5A059] text-white rounded-full font-semibold"
+                      className="px-6 py-2.5 min-h-[44px] flex items-center justify-center bg-[#111111] hover:bg-[#C5A059] text-white rounded-full font-semibold text-xs font-sans transition-colors"
                     >
                       Save Address
                     </button>
@@ -542,7 +661,7 @@ export function CheckoutWorkflow() {
                 <button
                   type="button"
                   onClick={() => setStep(2)}
-                  className="px-8 py-3.5 bg-[#111111] hover:bg-[#C5A059] text-white text-xs font-sans uppercase tracking-widest font-semibold rounded-full shadow flex items-center gap-2 transition-colors"
+                  className="w-full sm:w-auto px-8 py-3.5 min-h-[44px] bg-[#111111] hover:bg-[#C5A059] text-white text-xs font-sans uppercase tracking-widest font-semibold rounded-full shadow flex items-center justify-center gap-2 transition-colors"
                 >
                   <span>Continue to Discounts</span>
                   <ArrowRight className="w-4 h-4" />
@@ -611,17 +730,17 @@ export function CheckoutWorkflow() {
                     </button>
                   </div>
                 ) : (
-                  <form onSubmit={handleApplyCoupon} className="flex gap-2">
+                  <form onSubmit={handleApplyCoupon} className="flex flex-col sm:flex-row gap-2">
                     <input
                       type="text"
                       placeholder="Try: WELCOME10 or FOREVERE20"
                       value={couponCodeInput}
                       onChange={(e) => setCouponCodeInput(e.target.value.toUpperCase())}
-                      className="flex-1 px-4 py-2.5 bg-[#FDFBF7] border border-[#EADFC9] rounded-xl text-xs font-mono uppercase focus:outline-none focus:border-[#C5A059] text-[#111111]"
+                      className="flex-1 px-4 py-2.5 bg-[#FDFBF7] border border-[#EADFC9] rounded-xl text-base sm:text-xs font-mono uppercase focus:outline-none focus:border-[#C5A059] text-[#111111] min-h-[44px]"
                     />
                     <button
                       type="submit"
-                      className="px-6 py-2.5 bg-[#111111] hover:bg-[#C5A059] text-white rounded-xl text-xs font-sans uppercase tracking-wider font-semibold transition-colors"
+                      className="px-6 py-2.5 bg-[#111111] hover:bg-[#C5A059] text-white rounded-xl text-xs font-sans uppercase tracking-wider font-semibold transition-colors min-h-[44px] flex items-center justify-center"
                     >
                       Apply
                     </button>
@@ -635,7 +754,7 @@ export function CheckoutWorkflow() {
 
               {/* Gift Message & Wrapping Option */}
               <div className="border-t border-[#EADFC9] pt-4 space-y-3">
-                <label className="flex items-center gap-2 text-xs font-sans text-gray-700 cursor-pointer">
+                <label className="flex items-center gap-2 text-xs font-sans text-gray-700 cursor-pointer min-h-[44px]">
                   <input
                     type="checkbox"
                     checked={isGift}
@@ -655,18 +774,18 @@ export function CheckoutWorkflow() {
                       placeholder="Wishing you a lifetime of brilliance and joy..."
                       value={giftMessage}
                       onChange={(e) => setGiftMessage(e.target.value)}
-                      className="w-full px-3 py-2 bg-[#FDFBF7] border border-[#EADFC9] rounded-xl text-xs text-[#111111]"
+                      className="w-full px-3 py-2 bg-[#FDFBF7] border border-[#EADFC9] rounded-xl text-base sm:text-xs text-[#111111] focus:outline-none focus:border-[#C5A059]"
                     />
                   </div>
                 )}
               </div>
 
               {/* Navigation Actions */}
-              <div className="pt-4 border-t border-[#EADFC9] flex items-center justify-between">
+              <div className="pt-4 border-t border-[#EADFC9] flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3">
                 <button
                   type="button"
                   onClick={() => setStep(1)}
-                  className="px-6 py-2.5 border border-gray-300 rounded-full text-xs font-sans text-gray-600 hover:bg-gray-50 flex items-center gap-2"
+                  className="px-6 py-2.5 min-h-[44px] border border-gray-300 rounded-full text-xs font-sans text-gray-600 hover:bg-gray-50 flex items-center justify-center gap-2 transition-colors"
                 >
                   <ArrowLeft className="w-4 h-4" />
                   <span>Back to Address</span>
@@ -674,7 +793,7 @@ export function CheckoutWorkflow() {
                 <button
                   type="button"
                   onClick={() => setStep(3)}
-                  className="px-8 py-3.5 bg-[#111111] hover:bg-[#C5A059] text-white text-xs font-sans uppercase tracking-widest font-semibold rounded-full shadow flex items-center gap-2 transition-colors"
+                  className="px-8 py-3.5 min-h-[44px] bg-[#111111] hover:bg-[#C5A059] text-white text-xs font-sans uppercase tracking-widest font-semibold rounded-full shadow flex items-center justify-center gap-2 transition-colors"
                 >
                   <span>Proceed to Payment</span>
                   <ArrowRight className="w-4 h-4" />
@@ -744,12 +863,12 @@ export function CheckoutWorkflow() {
               </div>
 
               {/* Actions */}
-              <div className="pt-4 border-t border-[#EADFC9] flex items-center justify-between">
+              <div className="pt-4 border-t border-[#EADFC9] flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3">
                 <button
                   type="button"
                   onClick={() => setStep(2)}
                   disabled={isProcessing}
-                  className="px-6 py-2.5 border border-gray-300 rounded-full text-xs font-sans text-gray-600 hover:bg-gray-50 flex items-center gap-2"
+                  className="px-6 py-2.5 min-h-[44px] border border-gray-300 rounded-full text-xs font-sans text-gray-600 hover:bg-gray-50 flex items-center justify-center gap-2 transition-colors"
                 >
                   <ArrowLeft className="w-4 h-4" />
                   <span>Back</span>
@@ -758,7 +877,7 @@ export function CheckoutWorkflow() {
                   type="button"
                   disabled={isProcessing || cartItems.length === 0}
                   onClick={handleCompleteOrder}
-                  className="px-8 py-4 bg-[#111111] hover:bg-[#C5A059] text-white text-xs font-sans uppercase tracking-[0.2em] font-semibold rounded-full shadow-lg flex items-center gap-3 transition-all disabled:opacity-50"
+                  className="px-8 py-4 min-h-[44px] bg-[#111111] hover:bg-[#C5A059] text-white text-xs font-sans uppercase tracking-[0.2em] font-semibold rounded-full shadow-lg flex items-center justify-center gap-3 transition-all disabled:opacity-50"
                 >
                   <Lock className="w-4 h-4 text-[#C5A059]" />
                   <span>{isProcessing ? 'Authorizing Payment...' : `Complete Order (₹${finalTotal.toLocaleString('en-IN')})`}</span>

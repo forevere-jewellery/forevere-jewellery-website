@@ -100,21 +100,21 @@ export function SalesAnalyticsDashboard() {
   ];
 
   return (
-    <div className="p-8 max-w-7xl w-full mx-auto space-y-8">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-8">
       {/* Header */}
       <div className="border-b border-[#EADFC9] pb-6 space-y-2">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F8F3E6] text-[#C5A059] text-[10px] font-semibold uppercase tracking-wider">
           <BarChart3 className="w-3.5 h-3.5" />
           <span>Business Intelligence</span>
         </div>
-        <h1 className="text-3xl font-serif text-[#111111]">Sales Analytics Dashboard</h1>
+        <h1 className="text-2xl sm:text-3xl font-serif text-[#111111]">Sales Analytics Dashboard</h1>
         <p className="text-xs text-gray-500 font-sans">
           Real-time insights derived from all {mockDB.orders.length} orders in the mock store database.
         </p>
       </div>
 
       {/* Summary Metric Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {METRICS.map((m) => (
           <div key={m.label} className="bg-white border border-[#EADFC9] rounded-2xl p-5 shadow-sm space-y-3">
             <div className="flex items-center justify-between">

@@ -32,7 +32,7 @@ export function HomepageEditor() {
       hero_image: heroImage.trim() || 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?q=80&w=1920',
       hero_headline: heroHeadline.trim() || 'Timeless Elegance, Crafted Forever',
       hero_subheadline: heroSubheadline.trim() || 'Discover our hand-curated collection of fine jewelry.',
-      about_us_text: aboutUsText.trim() || 'At Forevere Jewellary, we craft heirloom luxury.'
+      about_us_text: aboutUsText.trim() || 'At Forevere Jewellery, we craft heirloom luxury.'
     };
 
     mockDB.homepageContent = updated;
@@ -42,7 +42,7 @@ export function HomepageEditor() {
   };
 
   return (
-    <div className="p-8 max-w-5xl w-full mx-auto space-y-8">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-5xl w-full mx-auto space-y-8">
       
       {/* Header */}
       <div className="border-b border-[#EADFC9] pb-6 space-y-2">
@@ -142,8 +142,8 @@ export function HomepageEditor() {
               required
               value={aboutUsText}
               onChange={(e) => setAboutUsText(e.target.value)}
-              placeholder="At Forevere Jewellary, we believe that true luxury lies in master craftsmanship..."
-              className="w-full px-3.5 py-2.5 bg-[#FDFBF7] border border-[#EADFC9] rounded-xl focus:outline-none focus:border-[#C5A059] text-[#111111] leading-relaxed"
+              placeholder="At Forevere Jewellery, we believe that true luxury lies in master craftsmanship..."
+              className="w-full px-3.5 py-2.5 bg-[#FDFBF7] border border-[#EADFC9] rounded-xl focus:outline-none focus:border-[#C5A059] text-base sm:text-xs text-[#111111] leading-relaxed"
             />
             <p className="text-[10px] text-gray-400">Renders on both the homepage brand spotlight and the dedicated /about page.</p>
           </div>

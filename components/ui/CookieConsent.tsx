@@ -44,13 +44,13 @@ export function CookieConsent() {
       <div className="flex items-center gap-2">
         <button
           onClick={handleAccept}
-          className="flex-1 py-2.5 bg-[#111111] hover:bg-[#C5A059] text-white rounded-full text-xs font-sans uppercase tracking-wider font-semibold transition-colors"
+          className="flex-1 py-2.5 min-h-[44px] flex items-center justify-center bg-[#111111] hover:bg-[#C5A059] text-white rounded-full text-xs font-sans uppercase tracking-wider font-semibold transition-colors"
         >
           Accept All
         </button>
         <button
           onClick={handleDecline}
-          className="flex-1 py-2.5 border border-gray-300 text-gray-600 hover:bg-gray-50 rounded-full text-xs font-sans uppercase tracking-wider font-semibold transition-colors"
+          className="flex-1 py-2.5 min-h-[44px] flex items-center justify-center border border-gray-300 text-gray-600 hover:bg-gray-50 rounded-full text-xs font-sans uppercase tracking-wider font-semibold transition-colors"
         >
           Essential Only
         </button>

@@ -86,10 +86,17 @@ export function AuthModal() {
       const res = await signupWithEmail(email, password, fullName, phoneNumber);
       setLoading(false);
       if (res.success) {
-        if (res.needsProfileCompletion) {
+        if (res.confirmationSent) {
+          showToast(
+            'Confirmation Link Sent',
+            'Please check your email to verify your account.',
+            'info'
+          );
+          handleClose();
+        } else if (res.needsProfileCompletion) {
           setMode('complete_profile');
         } else {
-          showToast('Account Created', 'Welcome to the Forevere Fine Jewelry club!', 'success');
+          showToast('Account Created', 'Welcome to Forevere Jewellery!', 'success');
           handleClose();
         }
       } else {
@@ -130,11 +137,13 @@ export function AuthModal() {
   };
 
   const handleGoogleLogin = async () => {
+    setErrorMessage(null);
     setLoading(true);
-    await loginWithGoogle();
+    const res = await loginWithGoogle();
     setLoading(false);
-    showToast('Signed In with Google', 'Welcome to Forevere Jewellary.', 'success');
-    handleClose();
+    if (!res?.success && res?.error) {
+      setErrorMessage(res.error);
+    }
   };
 
   const handleCompleteProfile = async (e: React.FormEvent) => {
@@ -153,12 +162,12 @@ export function AuthModal() {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200">
-      <div className="bg-[#FDFBF7] border border-[#EADFC9] rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl relative space-y-6 text-[#111111]">
+      <div className="bg-[#FDFBF7] border border-[#EADFC9] rounded-3xl max-w-md w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl relative space-y-6 text-[#111111]">
         
         {/* Close Button */}
         <button
           onClick={handleClose}
-          className="absolute top-5 right-5 text-gray-400 hover:text-[#111111] p-1.5 rounded-full hover:bg-black/5 transition-colors"
+          className="absolute top-5 right-5 text-gray-400 hover:text-[#111111] p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full hover:bg-black/5 transition-colors"
           aria-label="Close Modal"
         >
           <X className="w-5 h-5" />
@@ -174,7 +183,7 @@ export function AuthModal() {
             {mode === 'complete_profile'
               ? 'Complete Your Profile'
               : mode === 'signup'
-              ? 'Join Forevere Jewellary'
+              ? 'Join Forevere Jewellery'
               : 'Sign In to Forevere'}
           </h2>
           <p className="text-xs text-gray-500 font-sans">
@@ -207,7 +216,7 @@ export function AuthModal() {
                   placeholder="e.g. Sophia Lawrence"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#EADFC9] rounded-xl text-xs focus:outline-none focus:border-[#C5A059] text-[#111111]"
+                  className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#EADFC9] rounded-xl text-base sm:text-xs focus:outline-none focus:border-[#C5A059] text-[#111111]"
                 />
               </div>
             </div>
@@ -224,7 +233,7 @@ export function AuthModal() {
                   placeholder="+91 98765 43210"
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#EADFC9] rounded-xl text-xs focus:outline-none focus:border-[#C5A059] text-[#111111]"
+                  className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#EADFC9] rounded-xl text-base sm:text-xs focus:outline-none focus:border-[#C5A059] text-[#111111]"
                 />
               </div>
             </div>
@@ -303,7 +312,7 @@ export function AuthModal() {
                         placeholder="Sophia Lawrence"
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#EADFC9] rounded-xl text-xs focus:outline-none focus:border-[#C5A059] text-[#111111]"
+                        className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#EADFC9] rounded-xl text-base sm:text-xs focus:outline-none focus:border-[#C5A059] text-[#111111]"
                       />
                     </div>
                   </div>
@@ -322,7 +331,7 @@ export function AuthModal() {
                       placeholder="sophia@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#EADFC9] rounded-xl text-xs focus:outline-none focus:border-[#C5A059] text-[#111111]"
+                      className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#EADFC9] rounded-xl text-base sm:text-xs focus:outline-none focus:border-[#C5A059] text-[#111111]"
                     />
                   </div>
                 </div>
@@ -342,7 +351,7 @@ export function AuthModal() {
                       placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#EADFC9] rounded-xl text-xs focus:outline-none focus:border-[#C5A059] text-[#111111]"
+                      className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#EADFC9] rounded-xl text-base sm:text-xs focus:outline-none focus:border-[#C5A059] text-[#111111]"
                     />
                   </div>
                 </div>
@@ -376,7 +385,7 @@ export function AuthModal() {
                         placeholder="+91 98765 43210"
                         value={phoneNumber}
                         onChange={(e) => setPhoneNumber(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#EADFC9] rounded-xl text-xs focus:outline-none focus:border-[#C5A059] text-[#111111]"
+                        className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#EADFC9] rounded-xl text-base sm:text-xs focus:outline-none focus:border-[#C5A059] text-[#111111]"
                       />
                     </div>
                     <button

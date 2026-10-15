@@ -142,7 +142,7 @@ export function OrderConfirmationView({ orderId }: OrderConfirmationViewProps) {
             <div className="pt-4">
               <Link
                 href="/shop"
-                className="w-full py-3 bg-[#111111] hover:bg-[#C5A059] text-white text-xs font-sans uppercase tracking-widest font-semibold rounded-full shadow text-center block transition-colors"
+                className="w-full py-3 min-h-[44px] bg-[#111111] hover:bg-[#C5A059] text-white text-xs font-sans uppercase tracking-widest font-semibold rounded-full shadow text-center flex items-center justify-center transition-colors"
               >
                 Continue Shopping
               </Link>

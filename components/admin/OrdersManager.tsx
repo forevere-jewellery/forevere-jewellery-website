@@ -56,14 +56,14 @@ export function OrdersManager() {
   };
 
   return (
-    <div className="p-8 max-w-7xl w-full mx-auto space-y-8">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-8">
       {/* Header */}
       <div className="border-b border-[#EADFC9] pb-6 space-y-2">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F8F3E6] text-[#C5A059] text-[10px] font-semibold uppercase tracking-wider">
           <ShoppingBag className="w-3.5 h-3.5" />
           <span>Order Fulfillment</span>
         </div>
-        <h1 className="text-3xl font-serif text-[#111111]">Orders Management</h1>
+        <h1 className="text-2xl sm:text-3xl font-serif text-[#111111]">Orders Management</h1>
         <div className="flex items-center gap-4 text-xs font-sans text-gray-500">
           <span>{orders.length} total orders</span>
           <span>&bull;</span>
@@ -80,13 +80,13 @@ export function OrdersManager() {
             placeholder="Search by order ID or user ID..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 bg-white border border-[#EADFC9] rounded-xl text-xs font-sans text-[#111111] focus:outline-none focus:border-[#C5A059]"
+            className="w-full pl-9 pr-4 py-2.5 bg-white border border-[#EADFC9] rounded-xl text-base sm:text-xs font-sans text-[#111111] focus:outline-none focus:border-[#C5A059]"
           />
         </div>
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-4 py-2.5 bg-white border border-[#EADFC9] rounded-xl text-xs font-sans text-[#111111] focus:outline-none focus:border-[#C5A059]"
+          className="px-4 py-2.5 bg-white border border-[#EADFC9] rounded-xl text-base sm:text-xs font-sans text-[#111111] focus:outline-none focus:border-[#C5A059]"
         >
           <option value="all">All Statuses</option>
           {ORDER_STATUSES.map((s) => (
@@ -151,7 +151,7 @@ export function OrdersManager() {
                   <select
                     value={order.status}
                     onChange={(e) => handleStatusChange(order.id, e.target.value)}
-                    className="flex-1 px-3 py-2 bg-[#FDFBF7] border border-[#EADFC9] rounded-xl text-[#111111] focus:outline-none focus:border-[#C5A059]"
+                    className="flex-1 px-3 py-2 bg-[#FDFBF7] border border-[#EADFC9] rounded-xl text-base sm:text-xs text-[#111111] focus:outline-none focus:border-[#C5A059]"
                   >
                     {ORDER_STATUSES.map((s) => (
                       <option key={s} value={s}>{s.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}</option>

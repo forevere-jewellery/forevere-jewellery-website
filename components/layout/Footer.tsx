@@ -8,8 +8,8 @@ export function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
         
         {/* Brand Commitments Bar */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-12 border-b border-gray-800 text-center md:text-left">
-          <div className="flex flex-col items-center md:items-start gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 pb-12 border-b border-gray-800 text-center sm:text-left">
+          <div className="flex flex-col items-center sm:items-start gap-2">
             <div className="w-10 h-10 rounded-full bg-[#C5A059]/10 flex items-center justify-center text-[#C5A059]">
               <Truck className="w-5 h-5" />
             </div>
@@ -17,7 +17,7 @@ export function Footer() {
             <p className="text-[11px] text-gray-400 font-sans">Discreet, fully insured delivery straight to your doorstep.</p>
           </div>
 
-          <div className="flex flex-col items-center md:items-start gap-2">
+          <div className="flex flex-col items-center sm:items-start gap-2">
             <div className="w-10 h-10 rounded-full bg-[#C5A059]/10 flex items-center justify-center text-[#C5A059]">
               <Award className="w-5 h-5" />
             </div>
@@ -25,7 +25,7 @@ export function Footer() {
             <p className="text-[11px] text-gray-400 font-sans">Every diamond &amp; gemstone comes with authentic certification.</p>
           </div>
 
-          <div className="flex flex-col items-center md:items-start gap-2">
+          <div className="flex flex-col items-center sm:items-start gap-2">
             <div className="w-10 h-10 rounded-full bg-[#C5A059]/10 flex items-center justify-center text-[#C5A059]">
               <RefreshCw className="w-5 h-5" />
             </div>
@@ -33,7 +33,7 @@ export function Footer() {
             <p className="text-[11px] text-gray-400 font-sans">Complimentary return &amp; exchange process with 100% money back.</p>
           </div>
 
-          <div className="flex flex-col items-center md:items-start gap-2">
+          <div className="flex flex-col items-center sm:items-start gap-2">
             <div className="w-10 h-10 rounded-full bg-[#C5A059]/10 flex items-center justify-center text-[#C5A059]">
               <ShieldCheck className="w-5 h-5" />
             </div>
@@ -43,19 +43,19 @@ export function Footer() {
         </div>
 
         {/* Footer Navigation Columns */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-10 text-xs font-sans">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 sm:gap-10 text-xs font-sans">
           
           {/* Col 1: Brand Info */}
-          <div className="md:col-span-2 space-y-4">
-            <h3 className="text-2xl font-serif text-white tracking-wide">FOREVERE JEWELLARY</h3>
+          <div className="sm:col-span-2 lg:col-span-2 space-y-4">
+            <h3 className="text-2xl font-serif text-white tracking-wide">FOREVERE JEWELLERY</h3>
             <p className="text-gray-400 leading-relaxed max-w-sm">
               Creating heirloom-quality solitaire diamond rings, necklaces, earrings, and fine jewelry. Handcrafted with passion, ethically sourced gold, and precision brilliance.
             </p>
             <div className="flex items-center gap-4 text-gray-400 pt-2">
-              <a href="#" className="hover:text-[#C5A059] transition-colors p-1" aria-label="Social Media">
+              <a href="#" className="hover:text-[#C5A059] transition-colors p-2 min-w-[44px] min-h-[44px] flex items-center justify-center" aria-label="Social Media">
                 <Share2 className="w-4 h-4" />
               </a>
-              <a href="#" className="hover:text-[#C5A059] transition-colors p-1" aria-label="Global Store">
+              <a href="#" className="hover:text-[#C5A059] transition-colors p-2 min-w-[44px] min-h-[44px] flex items-center justify-center" aria-label="Global Store">
                 <Globe className="w-4 h-4" />
               </a>
             </div>
@@ -110,7 +110,7 @@ export function Footer() {
 
         {/* Copyright */}
         <div className="pt-8 border-t border-gray-800 text-center text-[11px] text-gray-500 font-sans flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p>&copy; {new Date().getFullYear()} Forevere Jewellary Inc. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Forevere Jewellery Inc. All rights reserved.</p>
           <p className="text-gray-400">Handcrafted with perfection for timeless moments.</p>
         </div>
 

@@ -220,7 +220,7 @@ export function ProductManager() {
   }, [products, searchQuery, categoryFilter]);
 
   return (
-    <div className="p-8 max-w-7xl w-full mx-auto space-y-8">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-8">
       
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[#EADFC9] pb-6">
@@ -229,7 +229,7 @@ export function ProductManager() {
             <Gem className="w-3.5 h-3.5" />
             <span>Product Catalog</span>
           </div>
-          <h1 className="text-3xl font-serif text-[#111111]">Jewelry Masterpieces</h1>
+          <h1 className="text-2xl sm:text-3xl font-serif text-[#111111]">Jewelry Masterpieces</h1>
           <p className="text-xs text-gray-500 font-sans">
             Shopify-style management: inline stock editing, active toggles, multi-image upload &amp; live syncing.
           </p>
@@ -237,7 +237,7 @@ export function ProductManager() {
 
         <button
           onClick={handleOpenAdd}
-          className="px-6 py-3 bg-[#111111] hover:bg-[#C5A059] text-white text-xs font-sans uppercase tracking-widest font-semibold rounded-full shadow flex items-center gap-2 transition-colors"
+          className="px-6 py-3 min-h-[44px] bg-[#111111] hover:bg-[#C5A059] text-white text-xs font-sans uppercase tracking-widest font-semibold rounded-full shadow flex items-center justify-center gap-2 transition-colors w-full sm:w-auto"
         >
           <Plus className="w-4 h-4" />
           <span>Add New Product</span>
@@ -249,24 +249,24 @@ export function ProductManager() {
         
         {/* Search */}
         <div className="relative w-full md:w-80">
-          <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-2.5" />
+          <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search by product name or slug..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-[#FDFBF7] border border-[#EADFC9] rounded-xl text-xs focus:outline-none focus:border-[#C5A059] text-[#111111]"
+            className="w-full pl-10 pr-4 py-2 bg-[#FDFBF7] border border-[#EADFC9] rounded-xl text-base sm:text-xs focus:outline-none focus:border-[#C5A059] text-[#111111]"
           />
         </div>
 
         {/* Category Filter */}
         <div className="flex items-center gap-3 w-full md:w-auto">
           <SlidersHorizontal className="w-4 h-4 text-[#C5A059]" />
-          <span className="text-gray-500">Filter Category:</span>
+          <span className="text-gray-500 shrink-0">Filter Category:</span>
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="bg-[#FDFBF7] border border-[#EADFC9] rounded-xl px-3 py-2 text-xs text-[#111111] font-medium focus:outline-none focus:border-[#C5A059]"
+            className="flex-1 md:flex-none bg-[#FDFBF7] border border-[#EADFC9] rounded-xl px-3 py-2 text-base sm:text-xs text-[#111111] font-medium focus:outline-none focus:border-[#C5A059]"
           >
             <option value="all">All Categories ({products.length})</option>
             {categories.map((cat) => (
@@ -282,7 +282,7 @@ export function ProductManager() {
       {/* Product Table */}
       <div className="bg-white border border-[#EADFC9] rounded-2xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs font-sans">
+          <table className="w-full text-left text-xs font-sans min-w-[700px]">
             <thead className="bg-[#F8F3E6] text-[#555555] uppercase tracking-wider text-[10px] border-b border-[#EADFC9]">
               <tr>
                 <th className="py-3.5 px-4 font-semibold">Image</th>
@@ -419,7 +419,8 @@ export function ProductManager() {
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="text-gray-400 hover:text-[#111111]"
+                className="text-gray-400 hover:text-[#111111] p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full hover:bg-black/5"
+                aria-label="Close modal"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -439,7 +440,7 @@ export function ProductManager() {
                     placeholder="e.g. Celestial Diamond Solitaire Ring"
                     value={name}
                     onChange={(e) => handleNameChange(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-white border border-[#EADFC9] rounded-xl focus:outline-none focus:border-[#C5A059] text-[#111111]"
+                    className="w-full px-3.5 py-2.5 bg-white border border-[#EADFC9] rounded-xl focus:outline-none focus:border-[#C5A059] text-base sm:text-xs text-[#111111]"
                   />
                   <p className="text-[10px] text-gray-400">Descriptive luxury name of the jewelry item.</p>
                 </div>
@@ -455,7 +456,7 @@ export function ProductManager() {
                     placeholder="celestial-diamond-solitaire-ring"
                     value={slug}
                     onChange={(e) => setSlug(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-white border border-[#EADFC9] rounded-xl focus:outline-none focus:border-[#C5A059] text-[#111111] font-mono text-xs"
+                    className="w-full px-3.5 py-2.5 bg-white border border-[#EADFC9] rounded-xl focus:outline-none focus:border-[#C5A059] text-base sm:text-xs text-[#111111] font-mono"
                   />
                 </div>
 
@@ -467,7 +468,7 @@ export function ProductManager() {
                   <select
                     value={categoryId}
                     onChange={(e) => setCategoryId(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-white border border-[#EADFC9] rounded-xl focus:outline-none focus:border-[#C5A059] text-[#111111]"
+                    className="w-full px-3.5 py-2.5 bg-white border border-[#EADFC9] rounded-xl focus:outline-none focus:border-[#C5A059] text-base sm:text-xs text-[#111111]"
                   >
                     {categories.map((c) => (
                       <option key={c.id} value={c.id}>
@@ -489,7 +490,7 @@ export function ProductManager() {
                     required
                     value={price}
                     onChange={(e) => setPrice(Number(e.target.value))}
-                    className="w-full px-3.5 py-2.5 bg-white border border-[#EADFC9] rounded-xl focus:outline-none focus:border-[#C5A059] text-[#111111]"
+                    className="w-full px-3.5 py-2.5 bg-white border border-[#EADFC9] rounded-xl focus:outline-none focus:border-[#C5A059] text-base sm:text-xs text-[#111111]"
                   />
                 </div>
 
@@ -504,7 +505,7 @@ export function ProductManager() {
                     max="100"
                     value={discountPercent}
                     onChange={(e) => setDiscountPercent(Number(e.target.value))}
-                    className="w-full px-3.5 py-2.5 bg-white border border-[#EADFC9] rounded-xl focus:outline-none focus:border-[#C5A059] text-[#111111]"
+                    className="w-full px-3.5 py-2.5 bg-white border border-[#EADFC9] rounded-xl focus:outline-none focus:border-[#C5A059] text-base sm:text-xs text-[#111111]"
                   />
                 </div>
 
@@ -519,7 +520,7 @@ export function ProductManager() {
                     required
                     value={stockQuantity}
                     onChange={(e) => setStockQuantity(Number(e.target.value))}
-                    className="w-full px-3.5 py-2.5 bg-white border border-[#EADFC9] rounded-xl focus:outline-none focus:border-[#C5A059] text-[#111111]"
+                    className="w-full px-3.5 py-2.5 bg-white border border-[#EADFC9] rounded-xl focus:outline-none focus:border-[#C5A059] text-base sm:text-xs text-[#111111]"
                   />
                 </div>
               </div>
@@ -534,7 +535,7 @@ export function ProductManager() {
                   placeholder="Handcrafted in 18K solid yellow gold featuring a luminous solitaire diamond..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-white border border-[#EADFC9] rounded-xl focus:outline-none focus:border-[#C5A059] text-[#111111]"
+                  className="w-full px-3.5 py-2.5 bg-white border border-[#EADFC9] rounded-xl focus:outline-none focus:border-[#C5A059] text-base sm:text-xs text-[#111111]"
                 />
               </div>
 
@@ -543,18 +544,18 @@ export function ProductManager() {
                 <label className="font-semibold text-gray-700 uppercase tracking-wider text-[11px]">
                   Product Imagery (Gallery)
                 </label>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <input
                     type="url"
                     placeholder="Paste image URL (e.g. https://images.unsplash.com/...)"
                     value={newImageInput}
                     onChange={(e) => setNewImageInput(e.target.value)}
-                    className="flex-1 px-3.5 py-2 bg-white border border-[#EADFC9] rounded-xl focus:outline-none focus:border-[#C5A059] text-[#111111]"
+                    className="flex-1 px-3.5 py-2.5 bg-white border border-[#EADFC9] rounded-xl focus:outline-none focus:border-[#C5A059] text-base sm:text-xs text-[#111111]"
                   />
                   <button
                     type="button"
                     onClick={handleAddImageUrl}
-                    className="px-4 py-2 bg-[#F8F3E6] border border-[#EADFC9] text-[#C5A059] hover:bg-[#C5A059] hover:text-white rounded-xl font-semibold transition-colors shrink-0"
+                    className="px-5 py-2.5 min-h-[44px] bg-[#F8F3E6] border border-[#EADFC9] text-[#C5A059] hover:bg-[#C5A059] hover:text-white rounded-xl font-semibold transition-colors shrink-0 flex items-center justify-center"
                   >
                     Add Image
                   </button>
@@ -588,13 +589,13 @@ export function ProductManager() {
                   placeholder="https://www.w3schools.com/html/mov_bbb.mp4"
                   value={videoUrl}
                   onChange={(e) => setVideoUrl(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-white border border-[#EADFC9] rounded-xl focus:outline-none focus:border-[#C5A059] text-[#111111]"
+                  className="w-full px-3.5 py-2.5 bg-white border border-[#EADFC9] rounded-xl focus:outline-none focus:border-[#C5A059] text-base sm:text-xs text-[#111111]"
                 />
               </div>
 
               {/* Toggles */}
-              <div className="flex items-center gap-6 pt-2">
-                <label className="flex items-center gap-2 cursor-pointer">
+              <div className="flex flex-wrap items-center gap-6 pt-2">
+                <label className="flex items-center gap-2 cursor-pointer min-h-[44px]">
                   <input
                     type="checkbox"
                     checked={isFeatured}
@@ -604,7 +605,7 @@ export function ProductManager() {
                   <span className="font-semibold text-gray-700">Feature on Homepage</span>
                 </label>
 
-                <label className="flex items-center gap-2 cursor-pointer">
+                <label className="flex items-center gap-2 cursor-pointer min-h-[44px]">
                   <input
                     type="checkbox"
                     checked={isActive}
@@ -616,17 +617,17 @@ export function ProductManager() {
               </div>
 
               {/* Actions */}
-              <div className="pt-4 flex items-center justify-end gap-3 border-t border-[#EADFC9]">
+              <div className="pt-4 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3 border-t border-[#EADFC9]">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-5 py-2.5 rounded-full border border-gray-300 text-gray-600 hover:bg-gray-100 font-semibold"
+                  className="px-5 py-2.5 min-h-[44px] flex items-center justify-center rounded-full border border-gray-300 text-gray-600 hover:bg-gray-100 font-semibold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 bg-[#111111] hover:bg-[#C5A059] text-white font-semibold rounded-full shadow transition-colors"
+                  className="px-6 py-2.5 min-h-[44px] flex items-center justify-center bg-[#111111] hover:bg-[#C5A059] text-white font-semibold rounded-full shadow transition-colors"
                 >
                   {editingProduct ? 'Save Product Changes' : 'Publish Product'}
                 </button>

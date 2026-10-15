@@ -1,16 +1,86 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { createServerClient } from '@supabase/ssr';
 import { verifyAdminToken } from '@/lib/auth/token';
+import { isRealSupabaseConfigured } from '@/lib/supabase/client';
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Protect all /api/admin routes except /api/admin/login
-  if (pathname.startsWith('/api/admin') && pathname !== '/api/admin/login') {
-    const adminToken = request.cookies.get('fj_admin_token')?.value;
-    const isTokenValid = adminToken ? await verifyAdminToken(adminToken) : false;
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  });
 
-    if (!isTokenValid) {
+  let user: any = null;
+  let userRole: string | null = null;
+
+  // 1. Refresh Supabase Auth Session using @supabase/ssr
+  if (isRealSupabaseConfigured()) {
+    try {
+      const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!.trim(),
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!.trim(),
+        {
+          cookies: {
+            getAll() {
+              return request.cookies.getAll();
+            },
+            setAll(cookiesToSet) {
+              cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+              response = NextResponse.next({
+                request: {
+                  headers: request.headers,
+                },
+              });
+              cookiesToSet.forEach(({ name, value, options }) =>
+                response.cookies.set(name, value, options)
+              );
+            },
+          },
+        }
+      );
+
+      // Calling getUser() validates and refreshes the token with Supabase Auth server
+      const { data } = await supabase.auth.getUser();
+      user = data?.user || null;
+
+      if (user) {
+        // Look up role in profiles table first
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+
+        if (profile?.role) {
+          userRole = profile.role;
+        } else {
+          // Fallback to legacy users table or admin email check
+          const { data: legacyUser } = await supabase
+            .from('users')
+            .select('role')
+            .eq('id', user.id)
+            .single();
+
+          userRole = legacyUser?.role || (user.email === 'admin@forevere.com' ? 'admin' : 'customer');
+        }
+      }
+    } catch {
+      // In case of network failure during token refresh, continue
+    }
+  }
+
+  // 2. Validate Admin Access (Signed Admin Token OR Supabase Auth User with role 'admin')
+  const adminToken = request.cookies.get('fj_admin_token')?.value;
+  const isTokenAdmin = adminToken ? await verifyAdminToken(adminToken) : false;
+  const isSupabaseAdmin = Boolean(user && userRole === 'admin');
+  const isAdmin = isTokenAdmin || isSupabaseAdmin;
+
+  // 3. Protect all /api/admin routes except /api/admin/login and /api/admin/logout
+  if (pathname.startsWith('/api/admin') && pathname !== '/api/admin/login' && pathname !== '/api/admin/logout') {
+    if (!isAdmin) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized. Administrator access required.' },
         { status: 401 }
@@ -18,26 +88,20 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Protect all /admin pages except /admin/login
+  // 4. Protect all /admin pages except /admin/login
   if (pathname.startsWith('/admin') && pathname !== '/admin/login') {
-    const adminToken = request.cookies.get('fj_admin_token')?.value;
-    const roleCookie = request.cookies.get('fj_role')?.value;
-    const isTokenValid = adminToken ? await verifyAdminToken(adminToken) : false;
-
-    // Must have a valid signed admin token (or matching role during development)
-    const isAuthorized =
-      isTokenValid || (process.env.NODE_ENV !== 'production' && roleCookie === 'admin');
-
-    if (!isAuthorized) {
+    if (!isAdmin) {
       const loginUrl = new URL('/admin/login', request.url);
-      loginUrl.searchParams.set('error', 'unauthorized');
+      if (user && userRole !== 'admin') {
+        loginUrl.searchParams.set('error', 'forbidden');
+      } else {
+        loginUrl.searchParams.set('error', 'unauthorized');
+      }
       return NextResponse.redirect(loginUrl);
     }
   }
 
-  const response = NextResponse.next();
-
-  // Add security headers
+  // 5. Add Security Headers
   response.headers.set('X-Frame-Options', 'DENY');
   response.headers.set('X-Content-Type-Options', 'nosniff');
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
@@ -54,5 +118,14 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/api/admin/:path*'],
+  matcher: [
+    /*
+     * Match all request paths except for:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - images and assets (svg, png, jpg, jpeg, gif, webp)
+     */
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
 };

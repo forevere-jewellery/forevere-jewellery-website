@@ -1,4 +1,4 @@
--- Seed Data for Forevere Jewellary
+-- Seed Data for Forevere Jewellery
 
 -- Seed Categories
 INSERT INTO public.categories (id, name, slug, description, image_url, sort_order) VALUES
@@ -48,7 +48,7 @@ ON CONFLICT DO NOTHING;
 
 -- Seed Homepage Content
 INSERT INTO public.homepage_content (id, hero_image, hero_headline, hero_subheadline, about_us_text) VALUES
-('h1000000-0000-0000-0000-000000000001', 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?q=80&w=1920', 'Timeless Elegance, Crafted Forever', 'Discover our hand-curated collection of ethical diamond rings, gold necklaces, and heirloom jewelry.', 'At Forevere Jewellary, we believe that true luxury lies in master craftsmanship, ethical sourcing, and timeless beauty. Founded with a vision to revolutionize fine jewelry, every ring, necklace, and earring is meticulously created by master artisans using 100% recycled gold and ethically sourced conflict-free diamonds.')
+('h1000000-0000-0000-0000-000000000001', 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?q=80&w=1920', 'Timeless Elegance, Crafted Forever', 'Discover our hand-curated collection of ethical diamond rings, gold necklaces, and heirloom jewelry.', 'At Forevere Jewellery, we believe that true luxury lies in master craftsmanship, ethical sourcing, and timeless beauty. Founded with a vision to revolutionize fine jewelry, every ring, necklace, and earring is meticulously created by master artisans using 100% recycled gold and ethically sourced conflict-free diamonds.')
 ON CONFLICT DO NOTHING;
 
 -- Seed Payment Methods

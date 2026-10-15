@@ -17,7 +17,7 @@ export default async function AboutPage() {
     hero_image: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?q=80&w=1920',
     hero_headline: 'Timeless Elegance, Crafted Forever',
     hero_subheadline: 'Discover our hand-curated collection of ethical diamond rings, gold necklaces, and heirloom jewelry.',
-    about_us_text: 'At Forevere Jewellary, we believe that true luxury lies in master craftsmanship, ethical sourcing, and timeless beauty. Founded with a vision to revolutionize fine jewelry, every ring, necklace, and earring is meticulously created by master artisans using 100% recycled gold and ethically sourced conflict-free diamonds.'
+    about_us_text: 'At Forevere Jewellery, we believe that true luxury lies in master craftsmanship, ethical sourcing, and timeless beauty. Founded with a vision to revolutionize fine jewelry, every ring, necklace, and earring is meticulously created by master artisans using 100% recycled gold and ethically sourced conflict-free diamonds.'
   };
 
   return (
@@ -31,7 +31,7 @@ export default async function AboutPage() {
           <section className="bg-[#111111] text-white py-20 text-center relative overflow-hidden border-b border-[#C5A059]/40">
             <div className="max-w-4xl mx-auto px-6 space-y-4 relative z-10">
               <span className="text-xs font-sans uppercase tracking-[0.3em] text-[#C5A059]">Our Heritage &amp; Craft</span>
-              <h1 className="text-4xl sm:text-6xl font-serif tracking-tight">About Forevere Jewellary</h1>
+              <h1 className="text-4xl sm:text-6xl font-serif tracking-tight">About Forevere Jewellery</h1>
               <p className="text-xs sm:text-base text-gray-300 font-sans max-w-xl mx-auto leading-relaxed">
                 Dedicated to master craftsmanship, certified diamonds, and lifelong elegance.
               </p>

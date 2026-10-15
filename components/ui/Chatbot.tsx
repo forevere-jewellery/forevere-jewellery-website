@@ -21,7 +21,7 @@ const CHATBOT_RESPONSES: Record<string, string> = {
   coupon: 'We have several active promotional codes! Try WELCOME10 for 10% off your first order, FOREVERE20 for 20% off orders above ₹20,000, or JEWEL500 for a flat ₹500 discount on orders above ₹5,000.',
   loyalty: 'You earn 0.05 Jewel Points for every ₹1 spent. Points can be redeemed for store credit discounts. Sign in to check your balance!',
   hallmark: 'All our jewelry is BIS Hallmark certified, guaranteeing metal purity. Each piece comes with an authentication certificate.',
-  default: "Thank you for reaching out to Forevere Jewellary! I'm your personal jewelry concierge. I can help you with information about our collections, shipping, returns, payment options, and promotional offers. What can I assist you with today?"
+  default: "Thank you for reaching out to Forevere Jewellery! I'm your personal jewelry concierge. I can help you with information about our collections, shipping, returns, payment options, and promotional offers. What can I assist you with today?"
 };
 
 function getBotResponse(message: string): string {
@@ -42,7 +42,7 @@ function getBotResponse(message: string): string {
 export function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: 'assistant', content: "Welcome to Forevere Jewellary! ✨ I'm your personal jewelry concierge. Ask me about our collections, shipping, returns, or exclusive offers!" }
+    { role: 'assistant', content: "Welcome to Forevere Jewellery! ✨ I'm your personal jewelry concierge. Ask me about our collections, shipping, returns, or exclusive offers!" }
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -163,7 +163,7 @@ export function Chatbot() {
                 placeholder="Ask about collections, shipping..."
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                className="flex-1 text-xs font-sans bg-transparent focus:outline-none text-[#111111] placeholder-gray-400"
+                className="flex-1 text-base sm:text-xs font-sans bg-transparent focus:outline-none text-[#111111] placeholder-gray-400"
               />
               <button type="submit" className="text-[#C5A059] hover:text-[#111111] transition-colors p-1">
                 <Send className="w-4 h-4" />
