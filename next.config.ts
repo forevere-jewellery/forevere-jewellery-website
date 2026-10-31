@@ -49,6 +49,9 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  experimental: {
+    agentUpgrade: "security",
+  },
   // Disable X-Powered-By header
   poweredByHeader: false,
 
