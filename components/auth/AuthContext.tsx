@@ -33,7 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
   const [authModalInitialView, setAuthModalInitialView] = useState<'login' | 'signup' | 'phone'>('login');
 
-  const supabase = createClient();
+  const [supabase] = useState(() => createClient());
 
   const fetchProfile = useCallback(async (userId: string, authEmail?: string, authMeta?: any): Promise<UserProfile> => {
     try {
@@ -50,7 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           email: profile.email || authEmail || null,
           phone: profile.phone || authMeta?.phone || null,
           phone_verified: Boolean(profile.phone || authMeta?.phone_verified),
-          role: (profile.role as UserRole) || (authEmail?.toLowerCase() === 'admin@forevere.com' ? 'admin' : 'customer'),
+          role: (profile.role as UserRole) || 'customer',
           points: profile.points ?? profile.loyalty_points ?? 50,
           loyalty_points: profile.loyalty_points ?? profile.points ?? 50,
           referral_code: profile.referral_code || 'REF' + profile.id.substring(0, 6).toUpperCase(),
@@ -73,7 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           email: authEmail || null,
           phone: legacyUser.phone || authMeta?.phone || null,
           phone_verified: Boolean(legacyUser.phone_verified),
-          role: (legacyUser.role as UserRole) || (authEmail?.toLowerCase() === 'admin@forevere.com' ? 'admin' : 'customer'),
+          role: (legacyUser.role as UserRole) || 'customer',
           points: legacyUser.loyalty_points || 50,
           loyalty_points: legacyUser.loyalty_points || 50,
           referral_code: legacyUser.referral_code || 'REF' + legacyUser.id.substring(0, 6).toUpperCase(),
@@ -85,14 +85,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.warn('[AuthContext] Could not fetch profile from database:', err);
     }
 
-    const isAdmin = authEmail?.toLowerCase() === 'admin@forevere.com' || authMeta?.role === 'admin';
     return {
       id: userId,
       full_name: authMeta?.full_name || authMeta?.name || authEmail?.split('@')[0] || 'Privileged Member',
       email: authEmail || null,
       phone: authMeta?.phone || null,
       phone_verified: false,
-      role: isAdmin ? 'admin' : 'customer',
+      role: 'customer',
       points: 50,
       loyalty_points: 50,
       referral_code: 'REF' + userId.substring(0, 6).toUpperCase(),
@@ -244,7 +243,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email,
       phone: '+919876543210',
       phone_verified: true,
-      role: email === 'admin@forevere.com' ? 'admin' : 'customer',
+      role: 'customer',
       points: 150,
       loyalty_points: 150,
       referral_code: 'REF' + Math.random().toString(36).substring(2, 7).toUpperCase(),

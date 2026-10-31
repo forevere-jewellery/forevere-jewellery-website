@@ -82,7 +82,7 @@ export async function POST(request: Request) {
         id: mockId,
         email,
         fullName: email.split('@')[0],
-        role: email === 'admin@forevere.com' ? 'admin' : 'customer',
+        role: 'customer',
       },
     });
   } catch {

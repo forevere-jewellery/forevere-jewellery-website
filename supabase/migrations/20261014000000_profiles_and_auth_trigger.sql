@@ -59,14 +59,8 @@ BEGIN
     NULL
   );
 
-  -- Explicitly designate admin@forevere.com as admin, otherwise customer
-  IF LOWER(COALESCE(NEW.email, '')) = 'admin@forevere.com' THEN
-    new_role := 'admin';
-  ELSIF NEW.raw_user_meta_data->>'role' = 'admin' THEN
-    new_role := 'admin';
-  ELSE
-    new_role := 'customer';
-  END IF;
+  -- New accounts always start as customers. Admin roles are assigned out of band.
+  new_role := 'customer';
 
   -- Generate unique referral code
   new_ref_code := 'REF' || UPPER(SUBSTRING(MD5(NEW.id::TEXT || RANDOM()::TEXT) FROM 1 FOR 6));
@@ -100,7 +94,7 @@ BEGIN
     email = EXCLUDED.email,
     full_name = CASE WHEN EXCLUDED.full_name IS NOT NULL AND EXCLUDED.full_name <> '' THEN EXCLUDED.full_name ELSE public.profiles.full_name END,
     phone = CASE WHEN EXCLUDED.phone IS NOT NULL AND EXCLUDED.phone <> '' THEN EXCLUDED.phone ELSE public.profiles.phone END,
-    role = CASE WHEN LOWER(EXCLUDED.email) = 'admin@forevere.com' THEN 'admin' ELSE public.profiles.role END,
+    role = public.profiles.role,
     updated_at = NOW();
 
   -- Maintain backward compatibility with public.users if table exists
@@ -129,7 +123,7 @@ BEGIN
       ON CONFLICT (id) DO UPDATE SET
         full_name = CASE WHEN EXCLUDED.full_name IS NOT NULL AND EXCLUDED.full_name <> '' THEN EXCLUDED.full_name ELSE public.users.full_name END,
         phone = CASE WHEN EXCLUDED.phone IS NOT NULL AND EXCLUDED.phone <> '' THEN EXCLUDED.phone ELSE public.users.phone END,
-        role = CASE WHEN LOWER(NEW.email) = 'admin@forevere.com' THEN 'admin' ELSE public.users.role END;
+        role = public.users.role;
     EXCEPTION WHEN OTHERS THEN
       -- Ignore any secondary sync errors
     END;
@@ -173,12 +167,12 @@ DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
 CREATE POLICY "Users can update own profile"
   ON public.profiles FOR UPDATE
   USING (auth.uid() = id OR public.is_admin())
-  WITH CHECK (auth.uid() = id OR public.is_admin());
+  WITH CHECK ((auth.uid() = id AND role = 'customer') OR public.is_admin());
 
 DROP POLICY IF EXISTS "Users can insert own profile" ON public.profiles;
 CREATE POLICY "Users can insert own profile"
   ON public.profiles FOR INSERT
-  WITH CHECK (auth.uid() = id OR public.is_admin());
+  WITH CHECK ((auth.uid() = id AND role = 'customer') OR public.is_admin());
 
 -- 4. Backfill profiles for all existing auth.users
 INSERT INTO public.profiles (
@@ -203,10 +197,7 @@ SELECT
   ),
   u.email,
   COALESCE(u.phone, u.raw_user_meta_data->>'phone', (SELECT phone FROM public.users usr WHERE usr.id = u.id LIMIT 1)),
-  CASE
-    WHEN LOWER(COALESCE(u.email, '')) = 'admin@forevere.com' THEN 'admin'
-    ELSE 'customer'
-  END,
+  'customer',
   100,
   100,
   'REF' || UPPER(SUBSTRING(MD5(u.id::TEXT) FROM 1 FOR 6)),
@@ -215,18 +206,4 @@ SELECT
 FROM auth.users u
 ON CONFLICT (id) DO UPDATE SET
   email = EXCLUDED.email,
-  role = CASE WHEN LOWER(EXCLUDED.email) = 'admin@forevere.com' THEN 'admin' ELSE public.profiles.role END;
-
--- Explicitly ensure admin@forevere.com is admin
-UPDATE public.profiles
-SET role = 'admin'
-WHERE LOWER(email) = 'admin@forevere.com';
-
-DO $$
-BEGIN
-  IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'users') THEN
-    UPDATE public.users
-    SET role = 'admin'
-    WHERE id IN (SELECT id FROM auth.users WHERE LOWER(email) = 'admin@forevere.com');
-  END IF;
-END $$;
+  role = public.profiles.role;

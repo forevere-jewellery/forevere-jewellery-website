@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
-import crypto from 'crypto';
 import { checkRateLimit, getClientIp } from '@/lib/security/rate-limit';
 import { loginSchema } from '@/lib/security/validation';
-import { signAdminToken } from '@/lib/auth/token';
 import { isRealSupabaseConfigured } from '@/lib/supabase/client';
 import { createClient as createServerSupabaseClient } from '@/lib/supabase/server';
 
@@ -10,7 +8,6 @@ export async function POST(request: Request) {
   try {
     const ip = getClientIp(request);
     const rate = checkRateLimit(`admin-login:${ip}`, { limit: 5, windowMs: 15 * 60 * 1000 });
-
     if (!rate.allowed) {
       return NextResponse.json(
         { success: false, error: `Too many attempts. Please try again in ${rate.retryAfterSec} seconds.` },
@@ -19,115 +16,54 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json().catch(() => null);
-    const parseResult = loginSchema.safeParse(body);
+    const parsed = loginSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ success: false, error: 'Invalid email or password.' }, { status: 400 });
+    }
+    if (!isRealSupabaseConfigured()) {
+      return NextResponse.json({ success: false, error: 'Authentication service is not configured.' }, { status: 503 });
+    }
 
-    if (!parseResult.success) {
+    const supabase = await createServerSupabaseClient();
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: parsed.data.email.trim().toLowerCase(),
+      password: parsed.data.password,
+    });
+    if (error || !data.user) {
+      return NextResponse.json({ success: false, error: 'Invalid email or password.' }, { status: 401 });
+    }
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', data.user.id)
+      .single();
+    let role = profile?.role;
+    if (!role) {
+      const { data: legacyProfile } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', data.user.id)
+        .single();
+      role = legacyProfile?.role;
+    }
+
+    if (role !== 'admin') {
+      await supabase.auth.signOut();
       return NextResponse.json(
-        { success: false, error: 'Invalid email or password.' },
-        { status: 400 }
+        { success: false, error: 'Access denied: Administrator privileges required.' },
+        { status: 403 }
       );
     }
-
-    const { email, password } = parseResult.data;
-    let isAuthenticated = false;
-    let adminUserId = 'admin-user-id';
-
-    // 1. Check Supabase Auth if real Supabase is configured
-    if (isRealSupabaseConfigured()) {
-      try {
-        const supabase = await createServerSupabaseClient();
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: email.trim().toLowerCase(),
-          password,
-        });
-
-        if (!error && data.user) {
-          // Check profiles table first
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', data.user.id)
-            .single();
-
-          let userRole = profile?.role;
-
-          if (!userRole) {
-            // Check legacy users table
-            const { data: legacyProfile } = await supabase
-              .from('users')
-              .select('role')
-              .eq('id', data.user.id)
-              .single();
-            userRole = legacyProfile?.role;
-          }
-
-          // If email is admin@forevere.com or role is admin
-          if (userRole === 'admin' || data.user.email?.toLowerCase() === 'admin@forevere.com') {
-            isAuthenticated = true;
-            adminUserId = data.user.id;
-          } else {
-            return NextResponse.json(
-              { success: false, error: 'Access denied: Administrator privileges required.' },
-              { status: 403 }
-            );
-          }
-        }
-      } catch {
-        // Fall back to server environment variables
-      }
-    }
-
-    // 2. Check Server-Side Environment Variables (read server-side only, never NEXT_PUBLIC_)
-    if (!isAuthenticated) {
-      const serverAdminEmail = process.env.ADMIN_EMAIL;
-      const serverAdminPassword = process.env.ADMIN_PASSWORD;
-
-      if (serverAdminEmail && serverAdminPassword) {
-        const emailMatches = email.toLowerCase().trim() === serverAdminEmail.toLowerCase().trim();
-        const passBuf = Buffer.from(password);
-        const expectedBuf = Buffer.from(serverAdminPassword);
-        const passMatches = passBuf.length === expectedBuf.length && crypto.timingSafeEqual(passBuf, expectedBuf);
-
-        if (emailMatches && passMatches) {
-          isAuthenticated = true;
-        }
-      }
-    }
-
-    if (!isAuthenticated) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid email or password.' },
-        { status: 401 }
-      );
-    }
-
-    // Create signed admin token
-    const token = await signAdminToken(adminUserId);
-    const isProduction = process.env.NODE_ENV === 'production';
 
     const response = NextResponse.json({
       success: true,
       message: 'Authentication successful.',
-      user: {
-        id: adminUserId,
-        email,
-        role: 'admin',
-      },
+      user: { id: data.user.id, email: data.user.email, role: 'admin' },
     });
-
-    // Set secure HttpOnly cookie for admin verification
-    response.cookies.set('fj_admin_token', token, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 7 * 24 * 60 * 60, // 7 days
-    });
-
-    // Remove legacy fake role and user_id cookies if present
+    response.cookies.delete('fj_admin_token');
     response.cookies.delete('fj_role');
     response.cookies.delete('fj_user_id');
-
     return response;
   } catch {
     return NextResponse.json(

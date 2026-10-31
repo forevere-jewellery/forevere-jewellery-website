@@ -81,11 +81,11 @@ CREATE POLICY "Users can read own profile"
 CREATE POLICY "Users can update own profile"
   ON public.users FOR UPDATE
   USING (auth.uid() = id OR public.is_admin())
-  WITH CHECK (auth.uid() = id OR public.is_admin());
+  WITH CHECK ((auth.uid() = id AND role = 'customer') OR public.is_admin());
 
 CREATE POLICY "Users can insert own profile"
   ON public.users FOR INSERT
-  WITH CHECK (auth.uid() = id OR public.is_admin());
+  WITH CHECK ((auth.uid() = id AND role = 'customer') OR public.is_admin());
 
 -- ==============================================================================
 -- 5. PUBLIC READ-ONLY CATALOG TABLES (Categories, Products, Offers, Coupons, etc.)

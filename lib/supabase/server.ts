@@ -1,3 +1,4 @@
+import 'server-only';
 import { createServerClient } from '@supabase/ssr';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
@@ -125,7 +126,7 @@ export async function createClient(): Promise<any> {
           email,
           phone: '+919876543210',
           phone_verified: true,
-          role: email === 'admin@forevere.com' ? 'admin' : 'customer',
+          role: 'customer',
           loyalty_points: 150,
           points: 150,
           referral_code: 'REF' + Math.random().toString(36).substring(2, 7).toUpperCase(),
@@ -142,7 +143,7 @@ export async function createClient(): Promise<any> {
           email,
           phone: options?.data?.phone || null,
           phone_verified: false,
-          role: email === 'admin@forevere.com' ? 'admin' : 'customer',
+          role: 'customer',
           loyalty_points: 50,
           points: 50,
           referral_code: 'REF' + Math.random().toString(36).substring(2, 7).toUpperCase(),

@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
-import { verifyAdminToken } from '@/lib/auth/token';
 import { isRealSupabaseConfigured } from '@/lib/supabase/client';
 
 export async function middleware(request: NextRequest) {
@@ -64,7 +63,7 @@ export async function middleware(request: NextRequest) {
             .eq('id', user.id)
             .single();
 
-          userRole = legacyUser?.role || (user.email === 'admin@forevere.com' ? 'admin' : 'customer');
+          userRole = legacyUser?.role || 'customer';
         }
       }
     } catch {
@@ -72,11 +71,8 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // 2. Validate Admin Access (Signed Admin Token OR Supabase Auth User with role 'admin')
-  const adminToken = request.cookies.get('fj_admin_token')?.value;
-  const isTokenAdmin = adminToken ? await verifyAdminToken(adminToken) : false;
-  const isSupabaseAdmin = Boolean(user && userRole === 'admin');
-  const isAdmin = isTokenAdmin || isSupabaseAdmin;
+  // 2. Admin access requires a validated Supabase session and database role.
+  const isAdmin = Boolean(user && userRole === 'admin');
 
   // 3. Protect all /api/admin routes except /api/admin/login and /api/admin/logout
   if (pathname.startsWith('/api/admin') && pathname !== '/api/admin/login' && pathname !== '/api/admin/logout') {

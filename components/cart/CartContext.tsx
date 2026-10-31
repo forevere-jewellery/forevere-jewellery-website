@@ -26,7 +26,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
 
-  const supabase = createClient();
+  const [supabase] = useState(() => createClient());
 
   const loadCart = useCallback(async () => {
     mockDB.loadFromLocalStorage();
