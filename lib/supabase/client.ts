@@ -1,4 +1,5 @@
 import { createBrowserClient } from '@supabase/ssr';
+import { createUnavailableQuery } from './unavailable-query';
 import { mockDB } from './mock-db';
 
 let browserClientInstance: any = null;
@@ -71,9 +72,7 @@ export function createClient(): any {
         },
       },
       from() {
-        return {
-          select: () => ({ eq: () => ({ single: async () => ({ data: null, error: new Error('Supabase is not configured') }) }) }),
-        };
+        return createUnavailableQuery();
       },
     };
   }

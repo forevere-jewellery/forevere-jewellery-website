@@ -1,4 +1,5 @@
 import 'server-only';
+import { createUnavailableQuery } from './unavailable-query';
 import { createServerClient } from '@supabase/ssr';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
@@ -48,9 +49,7 @@ export async function createClient(): Promise<any> {
         },
       },
       from() {
-        return {
-          select: () => ({ eq: () => ({ single: async () => ({ data: null, error: new Error('Supabase is not configured') }) }) }),
-        };
+        return createUnavailableQuery();
       },
     };
   }
